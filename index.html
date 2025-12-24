@@ -1789,9 +1789,6 @@ footer {
   margin-top: 1rem;
 }
 
-/* ========== SCROLL REVEAL ANIMATIONS ========== */
-/* Initial states are set by GSAP, not CSS, to prevent invisible content if JS fails */
-
 /* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar {
   width: 10px;
@@ -1802,14 +1799,9 @@ footer {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--surface-light);
+  background: var(--accent);
   border-radius: 5px;
 }
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
-
 /* ========== UTILITIES ========== */
 .visually-hidden {
   position: absolute;
@@ -1825,7 +1817,6 @@ footer {
 </head>
 <body>
 
-<!-- Background Shapes -->
 <div class="bg-shapes">
   <div class="shape shape-1"></div>
   <div class="shape shape-2"></div>
@@ -1879,7 +1870,6 @@ footer {
 
 <!-- Hero Section -->
 <section id="hero" class="hero">
-  <!-- Floating Particles - Lazy floating with shimmer -->
   <div class="particles particles-accent">
     <div class="particle particle--spark"></div>
     <div class="particle particle--diamond"></div>
@@ -1931,7 +1921,6 @@ footer {
       <div class="hero-circle hero-circle-3"></div>
       <div class="hero-circle hero-circle-4"></div>
       <div class="hero-circle hero-circle-5"></div>
-      <!-- Orbital dots on circles -->
       <div class="hero-dot hero-dot-1"></div>
       <div class="hero-dot hero-dot-2"></div>
       <div class="hero-dot hero-dot-3"></div>
@@ -1988,7 +1977,6 @@ footer {
 
 <!-- What is C2 4U Section -->
 <section id="what" class="what-is">
-  <!-- Floating Particles - Lazy floating with shimmer -->
   <div class="particles particles-subtle">
     <div class="particle particle--spark"></div>
     <div class="particle particle--diamond"></div>
@@ -2105,7 +2093,6 @@ footer {
 
 <!-- Why Choose Us Section -->
 <section id="why" class="why-us">
-  <!-- Floating Particles - Lazy floating with shimmer -->
   <div class="particles particles-accent">
     <div class="particle particle--spark"></div>
     <div class="particle particle--diamond"></div>

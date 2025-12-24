@@ -557,32 +557,34 @@
 
   /* ========== HOVER EFFECTS (only if GSAP available) ========== */
   if (typeof gsap !== 'undefined') {
-    // Magnetic button effect
-    document.querySelectorAll('.btn-primary').forEach(function(btn) {
-      btn.addEventListener('mousemove', function(e) {
-        const rect = btn.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        
-        gsap.to(btn, {
-          x: x * 0.15,
-          y: y * 0.15,
-          duration: 0.3,
-          ease: 'power2.out'
+    // Floating button effect - only vertical movement
+    document.querySelectorAll('.btn-primary, .btn-secondary, .btn-ghost').forEach(function(btn) {
+      let floatingAnimation = null;
+      
+      btn.addEventListener('mouseenter', function() {
+        // Плавная floating анимация вверх-вниз
+        floatingAnimation = gsap.to(btn, {
+          y: -4,
+          duration: 1.2,
+          ease: 'power1.inOut',
+          yoyo: true,
+          repeat: -1
         });
       });
       
       btn.addEventListener('mouseleave', function() {
+        if (floatingAnimation) {
+          floatingAnimation.kill();
+        }
         gsap.to(btn, {
-          x: 0,
           y: 0,
-          duration: 0.5,
-          ease: 'elastic.out(1, 0.4)'
+          duration: 0.4,
+          ease: 'power2.out'
         });
       });
     });
 
-    // Card tilt effect
+    // Card tilt effect - smooth and subtle
     document.querySelectorAll('.feature-card, .advantage-card, .pricing-card, .day-card').forEach(function(card) {
       card.addEventListener('mousemove', function(e) {
         const rect = card.getBoundingClientRect();
@@ -590,15 +592,16 @@
         const y = e.clientY - rect.top;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        const rotateX = (y - centerY) / 25;
-        const rotateY = (centerX - x) / 25;
+        // Более плавный и менее агрессивный tilt
+        const rotateX = (y - centerY) / 35;
+        const rotateY = (centerX - x) / 35;
         
         gsap.to(card, {
           rotateX: rotateX,
           rotateY: rotateY,
           transformPerspective: 1000,
-          duration: 0.4,
-          ease: 'power2.out'
+          duration: 0.5,
+          ease: 'power1.out'
         });
       });
       
@@ -606,7 +609,7 @@
         gsap.to(card, {
           rotateX: 0,
           rotateY: 0,
-          duration: 0.6,
+          duration: 0.7,
           ease: 'power2.out'
         });
       });
