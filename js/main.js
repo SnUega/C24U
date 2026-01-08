@@ -40,7 +40,6 @@
     // Store globally
     window.lenis = lenis;
     
-    console.log('Lenis + ScrollTrigger integrated successfully');
   } else {
     console.warn('Lenis not available, using native scroll');
   }
@@ -54,9 +53,9 @@
     const heroElements = document.querySelectorAll('.hero .hero-description, .hero .hero-cta, .hero .hero-features');
     heroElements.forEach((el, i) => {
       gsap.to(el, { 
-        opacity: 1, 
-        x: 0,
-        y: 0, 
+          opacity: 1, 
+          x: 0,
+          y: 0, 
         duration: 0.9, 
         ease: 'expo.out',
         delay: 0.2 + i * 0.1
@@ -299,21 +298,8 @@
       });
     }
 
-    // Cards subtle parallax (excluding day-cards to prevent weird behavior)
-    gsap.utils.toArray('.feature-card, .pricing-card').forEach((card, i) => {
-      gsap.to(card, {
-        y: -10 - (i % 3) * 3,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: card,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: 2.5
-        }
-      });
-    });
+    // Cards parallax removed to prevent conflict with 3D hover tilt effect
 
-    console.log('GSAP animations initialized');
   }
 
   /* ========== HEADER SCROLL EFFECT ========== */
@@ -327,7 +313,7 @@
     }
   }
   
-  window.addEventListener('scroll', updateHeader);
+  window.addEventListener('scroll', updateHeader, { passive: true });
   updateHeader();
 
   /* ========== MOBILE MENU ========== */
@@ -847,110 +833,90 @@
       });
     });
 
-    // Card tilt effect - smooth with lerp for natural movement
+    // Card tilt effect - direct and responsive with dynamic light reflection
     document.querySelectorAll('.feature-card, .advantage-card, .pricing-card, .day-card').forEach(function(card) {
-      // Optimize for 3D transforms
-      card.style.willChange = 'transform';
-      card.style.transformStyle = 'preserve-3d';
-      
-      // Store current and target values for smooth interpolation
-      let currentX = 0;
-      let currentY = 0;
-      let currentY_translate = 0;
-      let currentScale = 1;
-      let targetX = 0;
-      let targetY = 0;
-      let targetY_translate = 0;
-      let targetScale = 1;
-      let isHovering = false;
-      let animationId = null;
-      
       // Check if this is a featured pricing card
       const isFeatured = card.classList.contains('featured');
       const baseScale = isFeatured ? 1.05 : 1;
       
-      // Linear interpolation for smooth movement
-      const lerp = (start, end, factor) => start + (end - start) * factor;
+      // Set initial transform to prevent first-hover delay
+      card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(${baseScale})`;
+      card.style.transformStyle = 'preserve-3d';
+      card.style.willChange = 'transform';
       
-      // Animation loop for smooth continuous updates
-      const animate = () => {
-        // Smoothly interpolate towards target - faster response (0.2 instead of 0.12)
-        currentX = lerp(currentX, targetX, 0.2);
-        currentY = lerp(currentY, targetY, 0.2);
-        currentY_translate = lerp(currentY_translate, targetY_translate, 0.2);
-        currentScale = lerp(currentScale, targetScale, 0.2);
-        
-        // Build transform string - always include all values for consistency
-        // This prevents layout shifts when transform is reset
-        const transformStr = `perspective(1000px) rotateX(${currentX}deg) rotateY(${currentY}deg) translateY(${currentY_translate}px) scale(${currentScale})`;
-        card.style.transform = transformStr;
-        
-        // Continue animation if hovering or still moving
-        const stillMoving = 
-          Math.abs(currentX - targetX) > 0.01 || 
-          Math.abs(currentY - targetY) > 0.01 ||
-          Math.abs(currentY_translate - targetY_translate) > 0.01 ||
-          Math.abs(currentScale - targetScale) > 0.001;
-        
-        if (isHovering || stillMoving) {
-          animationId = requestAnimationFrame(animate);
-        } else {
-          animationId = null;
-          // Reset to exact values when done
-          currentX = 0;
-          currentY = 0;
-          currentY_translate = 0;
-          currentScale = baseScale;
-          // Always set transform with all values to prevent layout shifts
-          card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(${baseScale})`;
-        }
-      };
+      // Set CSS custom properties for light reflection position (opposite to tilt)
+      card.style.setProperty('--light-x', '50%');
+      card.style.setProperty('--light-y', '0%');
       
-      card.addEventListener('mouseenter', function() {
-        isHovering = true;
-        targetY_translate = -8;
-        targetScale = baseScale * 1.02;
-        if (!animationId) {
-          animate();
-        }
-      });
-      
-      card.addEventListener('mousemove', function(e) {
+      function updateCard(e) {
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
         
-        // Calculate target rotation - более выраженный наклон (делитель 10 вместо 20)
-        targetX = -(y - centerY) / 10;
-        targetY = (x - centerX) / 10;
-      });
+        // Calculate rotation - responsive tilt
+        const rotateX = -(y - centerY) / 16.85;
+        const rotateY = (x - centerX) / 16.85;
+        
+        // Light reflection position - opposite to cursor for realistic effect
+        // When card tilts towards cursor, light appears on opposite side
+        const lightX = 100 - (x / rect.width) * 100;
+        const lightY = 100 - (y / rect.height) * 100;
+        card.style.setProperty('--light-x', lightX + '%');
+        card.style.setProperty('--light-y', lightY + '%');
+        
+        // Apply transform directly for instant response
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(${baseScale * 1.02})`;
+      }
+      
+      card.addEventListener('mouseenter', function(e) {
+        // Remove transition for instant response
+        card.style.transition = 'none';
+        updateCard(e);
+      }, { passive: true });
+      
+      card.addEventListener('mousemove', updateCard, { passive: true });
       
       card.addEventListener('mouseleave', function() {
-        isHovering = false;
-        targetX = 0;
-        targetY = 0;
-        targetY_translate = 0;
-        targetScale = baseScale;
-      });
+        // Re-enable transition for smooth return
+        card.style.transition = 'transform 0.3s ease-out';
+        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(${baseScale})`;
+        // Reset light position
+        card.style.setProperty('--light-x', '50%');
+        card.style.setProperty('--light-y', '0%');
+      }, { passive: true });
     });
   }
 
   /* ========== ACTIVE NAVIGATION ========== */
   {
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
+    const logo = document.querySelector('header .logo');
     const sections = document.querySelectorAll('section[id]');
     
     function updateActiveNav() {
       const scrollPos = window.scrollY + 150; // Offset for better UX
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
       
-      sections.forEach(section => {
+      // Check if we're at the bottom of the page
+      const isAtBottom = (window.scrollY + windowHeight) >= (documentHeight - 50);
+      
+      let activeFound = false;
+      
+      // Iterate sections in reverse to find the last visible one
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
         const sectionTop = section.offsetTop;
         const sectionHeight = section.offsetHeight;
         const sectionId = section.getAttribute('id');
         
-        if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+        // Check if this section is in view
+        const isInView = scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight;
+        
+        if (isInView && !activeFound) {
+          activeFound = true;
           navLinks.forEach(link => {
             const href = link.getAttribute('href');
             if (href === `#${sectionId}`) {
@@ -959,14 +925,39 @@
               link.classList.remove('active');
             }
           });
+          
+          // Handle logo active state for hero section
+          if (logo) {
+            if (sectionId === 'hero') {
+              logo.classList.add('active');
+            } else {
+              logo.classList.remove('active');
+            }
+          }
         }
-      });
+      }
+      
+      // If no section is active (scrolled past all sections), remove all active states
+      if (!activeFound || isAtBottom) {
+        // Check if we're past the last section
+        const lastSection = sections[sections.length - 1];
+        if (lastSection) {
+          const lastSectionBottom = lastSection.offsetTop + lastSection.offsetHeight;
+          if (scrollPos > lastSectionBottom) {
+            navLinks.forEach(link => {
+              link.classList.remove('active');
+            });
+            if (logo) logo.classList.remove('active');
+          }
+        }
+      }
       
       // Handle hero section (at the top)
       if (window.scrollY < 100) {
         navLinks.forEach(link => {
           link.classList.remove('active');
         });
+        if (logo) logo.classList.add('active');
       }
     }
     
@@ -974,7 +965,7 @@
     if (lenis) {
       lenis.on('scroll', updateActiveNav);
     } else {
-      window.addEventListener('scroll', updateActiveNav);
+      window.addEventListener('scroll', updateActiveNav, { passive: true });
     }
     
     // Initial update
@@ -1006,9 +997,10 @@
         }
         
         reset() {
+          // Ensure particles are distributed evenly across entire screen including center
           this.x = Math.random() * W;
           this.y = Math.random() * H;
-          // Very slow, smooth movement
+          // Very slow, smooth movement - ensure movement in all directions
           this.vx = (Math.random() - 0.5) * 0.3;
           this.vy = (Math.random() - 0.5) * 0.3;
           // Varied sizes (1.5 to 4.5)
@@ -1047,11 +1039,11 @@
           this.x += this.vx;
           this.y += this.vy;
           
-          // Wrap around edges smoothly
-          if (this.x < -10) this.x = W + 10;
-          if (this.x > W + 10) this.x = -10;
-          if (this.y < -10) this.y = H + 10;
-          if (this.y > H + 10) this.y = -10;
+          // Wrap around edges smoothly - ensure particles stay evenly distributed
+          if (this.x < 0) this.x = W;
+          if (this.x > W) this.x = 0;
+          if (this.y < 0) this.y = H;
+          if (this.y > H) this.y = 0;
           
           // Opacity fluctuation
           if (this.hasTwinkle) {
@@ -1101,9 +1093,114 @@
       }
       
       animate();
-      console.log('Particles canvas initialized');
     }
   }
 
-  console.log('C2 4U Landing initialized successfully');
+  /* ========== ORIENTATION OVERLAY NETWORK ANIMATION ========== */
+  {
+    const canvas = document.getElementById('network-canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let W, H;
+      const particles = [];
+      const particleCount = 80;
+      const accentColor = { r: 201, g: 165, b: 92 }; // var(--accent)
+      
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+      
+      class NetworkParticle {
+        constructor() {
+          this.x = Math.random() * W;
+          this.y = Math.random() * H;
+          this.vx = (Math.random() - 0.5) * 0.5;
+          this.vy = (Math.random() - 0.5) * 0.5;
+          this.radius = 2;
+        }
+        
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          
+          if (this.x < 0 || this.x > W) this.vx *= -1;
+          if (this.y < 0 || this.y > H) this.vy *= -1;
+        }
+        
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${accentColor.r}, ${accentColor.g}, ${accentColor.b}, 0.8)`;
+          ctx.fill();
+        }
+      }
+      
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new NetworkParticle());
+      }
+      
+      let mouse = { x: null, y: null };
+      canvas.addEventListener('touchmove', function(e) {
+        if (e.touches[0]) {
+          mouse.x = e.touches[0].clientX;
+          mouse.y = e.touches[0].clientY;
+        }
+      }, { passive: true });
+      
+      canvas.addEventListener('touchend', function() {
+        mouse.x = null;
+        mouse.y = null;
+      });
+      
+      function dist(p1, p2) {
+        return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+      }
+      
+      function animateNetwork() {
+        ctx.clearRect(0, 0, W, H);
+        
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+        
+        // Draw connections between particles
+        for (let i = 0; i < particleCount; i++) {
+          for (let j = i + 1; j < particleCount; j++) {
+            const p1 = particles[i];
+            const p2 = particles[j];
+            const distance = dist(p1, p2);
+            
+            if (distance < 120) {
+              let alpha = (1 - distance / 120) * 0.4;
+              
+              // Enhance line if touch is close
+              if (mouse.x !== null) {
+                const distToMouse1 = dist(p1, mouse);
+                const distToMouse2 = dist(p2, mouse);
+                if (distToMouse1 < 80 || distToMouse2 < 80) {
+                  alpha = Math.min(0.8, alpha + 0.4);
+                }
+              }
+              
+              ctx.strokeStyle = `rgba(${accentColor.r}, ${accentColor.g}, ${accentColor.b}, ${alpha})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        }
+        
+        requestAnimationFrame(animateNetwork);
+      }
+      
+      animateNetwork();
+    }
+  }
+
 });
