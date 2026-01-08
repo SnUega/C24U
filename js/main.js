@@ -336,8 +336,10 @@
 
   if (burger && nav) {
     burger.addEventListener('click', function() {
-      burger.classList.toggle('active');
+      const isActive = burger.classList.toggle('active');
       nav.classList.toggle('active');
+      burger.setAttribute('aria-expanded', isActive);
+      burger.setAttribute('aria-label', isActive ? 'Закрыть меню' : 'Открыть меню');
     });
 
     // Close menu when clicking any link (nav links or contact links)
@@ -345,6 +347,8 @@
       link.addEventListener('click', function() {
         burger.classList.remove('active');
         nav.classList.remove('active');
+        burger.setAttribute('aria-expanded', 'false');
+        burger.setAttribute('aria-label', 'Открыть меню');
       });
     });
     
@@ -398,16 +402,105 @@
 
   function openModal() {
     if (modal) {
-      modal.classList.add('active');
+      // Очищаем ошибки валидации
+      clearFieldError('telegramUsername', 'telegramUsernameError');
+      clearFieldError('userEmail', 'userEmailError');
+      clearFieldError('privacyAgreement', 'privacyAgreementError');
+      
+      // Сохраняем текущую позицию скролла
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
+      
+      modal.classList.add('active');
       if (window.lenis) window.lenis.stop();
+      
+      // Инициализация Lenis для модального окна
+      const modalBox = modal.querySelector('.modal-box');
+      if (modalBox && typeof Lenis !== 'undefined') {
+        // Создаем отдельный Lenis для модального окна
+        const modalLenis = new Lenis({
+          wrapper: modalBox,
+          content: modalBox,
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          orientation: 'vertical',
+          gestureOrientation: 'vertical',
+          smoothWheel: true,
+          wheelMultiplier: 1,
+          touchMultiplier: 2,
+        });
+        
+        // RAF loop для модального Lenis
+        function raf(time) {
+          modalLenis.raf(time);
+          requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+        
+        // Сохраняем для удаления при закрытии
+        modalBox._modalLenis = modalLenis;
+      } else if (modalBox) {
+        // Fallback: обработка скролла колесиком мыши для модального окна
+        const handleWheel = function(e) {
+          const element = modalBox;
+          const isScrollable = element.scrollHeight > element.clientHeight;
+          
+          if (!isScrollable) {
+            return;
+          }
+          
+          const isAtTop = element.scrollTop <= 0;
+          const isAtBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 1;
+          
+          // Если скроллим вверх и уже наверху, или вниз и уже внизу - предотвращаем
+          if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
+            e.preventDefault();
+            return;
+          }
+          
+          // Иначе позволяем скроллить модальное окно
+          element.scrollTop += e.deltaY;
+          e.preventDefault();
+        };
+        
+        modalBox.addEventListener('wheel', handleWheel, { passive: false });
+        modalBox._wheelHandler = handleWheel;
+      }
     }
   }
 
   function closeModal() {
     if (modal) {
       modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      
+      // Удаляем Lenis или обработчик wheel
+      const modalBox = modal.querySelector('.modal-box');
+      if (modalBox) {
+        if (modalBox._modalLenis) {
+          modalBox._modalLenis.destroy();
+          delete modalBox._modalLenis;
+        }
+        if (modalBox._wheelHandler) {
+          modalBox.removeEventListener('wheel', modalBox._wheelHandler);
+          delete modalBox._wheelHandler;
+        }
+      }
+      
+      // Восстанавливаем скролл
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
+      
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+      
       if (window.lenis) window.lenis.start();
     }
   }
@@ -443,28 +536,196 @@
     });
   });
 
+  /* ========== ВАЛИДАЦИЯ ФОРМЫ ========== */
+  
+  function validateTelegramUsername(username) {
+    if (!username || !username.trim()) {
+      return { valid: false, message: 'Telegram username обязателен для заполнения' };
+    }
+    
+    // Убираем @ если пользователь его ввел
+    const cleanUsername = username.trim().replace(/^@+/, '');
+    
+    if (cleanUsername.length < 3) {
+      return { valid: false, message: 'Username должен содержать минимум 3 символа' };
+    }
+    
+    if (cleanUsername.length > 32) {
+      return { valid: false, message: 'Username не может быть длиннее 32 символов' };
+    }
+    
+    // Telegram username может содержать только буквы, цифры и подчеркивание
+    if (!/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
+      return { valid: false, message: 'Username может содержать только буквы, цифры и подчеркивание' };
+    }
+    
+    return { valid: true, value: cleanUsername };
+  }
+  
+  function validateEmail(email) {
+    if (!email || !email.trim()) {
+      return { valid: false, message: 'Email обязателен для получения чека об оплате' };
+    }
+    
+    const cleanEmail = email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(cleanEmail)) {
+      return { valid: false, message: 'Введите корректный email адрес' };
+    }
+    
+    // Дополнительная проверка длины
+    if (cleanEmail.length > 254) {
+      return { valid: false, message: 'Email слишком длинный' };
+    }
+    
+    return { valid: true, value: cleanEmail };
+  }
+  
+  function showFieldError(inputId, errorId, message) {
+    const input = document.getElementById(inputId);
+    const errorElement = document.getElementById(errorId);
+    
+    if (input && errorElement) {
+      input.classList.add('error');
+      input.classList.remove('valid');
+      errorElement.textContent = message;
+      // Используем setTimeout для плавной анимации
+      setTimeout(() => {
+        errorElement.classList.add('show');
+      }, 10);
+    }
+  }
+  
+  function showFieldValid(inputId, errorId) {
+    const input = document.getElementById(inputId);
+    const errorElement = document.getElementById(errorId);
+    
+    if (input && errorElement) {
+      input.classList.remove('error');
+      input.classList.add('valid');
+      errorElement.classList.remove('show');
+      // Очищаем текст после анимации
+      setTimeout(() => {
+        errorElement.textContent = '';
+      }, 300);
+    }
+  }
+  
+  function clearFieldError(inputId, errorId) {
+    const input = document.getElementById(inputId);
+    const errorElement = document.getElementById(errorId);
+    
+    if (input && errorElement) {
+      input.classList.remove('error', 'valid');
+      errorElement.classList.remove('show');
+      // Очищаем текст после анимации
+      setTimeout(() => {
+        errorElement.textContent = '';
+      }, 300);
+    }
+  }
+  
+  // Валидация в реальном времени
+  const telegramUsernameInput = document.getElementById('telegramUsername');
+  const userEmailInput = document.getElementById('userEmail');
+  
+  if (telegramUsernameInput) {
+    telegramUsernameInput.addEventListener('input', function() {
+      const value = this.value;
+      if (value.trim()) {
+        const validation = validateTelegramUsername(value);
+        if (validation.valid) {
+          showFieldValid('telegramUsername', 'telegramUsernameError');
+        } else {
+          showFieldError('telegramUsername', 'telegramUsernameError', validation.message);
+        }
+      } else {
+        clearFieldError('telegramUsername', 'telegramUsernameError');
+      }
+    });
+    
+    telegramUsernameInput.addEventListener('blur', function() {
+      const value = this.value;
+      if (value.trim()) {
+        const validation = validateTelegramUsername(value);
+        if (!validation.valid) {
+          showFieldError('telegramUsername', 'telegramUsernameError', validation.message);
+        }
+      }
+    });
+  }
+  
+  if (userEmailInput) {
+    userEmailInput.addEventListener('input', function() {
+      const value = this.value;
+      if (value.trim()) {
+        const validation = validateEmail(value);
+        if (validation.valid) {
+          showFieldValid('userEmail', 'userEmailError');
+        } else {
+          showFieldError('userEmail', 'userEmailError', validation.message);
+        }
+      } else {
+        clearFieldError('userEmail', 'userEmailError');
+      }
+    });
+    
+    userEmailInput.addEventListener('blur', function() {
+      const value = this.value;
+      if (value.trim()) {
+        const validation = validateEmail(value);
+        if (!validation.valid) {
+          showFieldError('userEmail', 'userEmailError', validation.message);
+        }
+      }
+    });
+  }
+  
+  // Валидация чекбокса согласия
+  const privacyAgreementInput = document.getElementById('privacyAgreement');
+  if (privacyAgreementInput) {
+    privacyAgreementInput.addEventListener('change', function() {
+      if (this.checked) {
+        showFieldValid('privacyAgreement', 'privacyAgreementError');
+      } else {
+        clearFieldError('privacyAgreement', 'privacyAgreementError');
+      }
+    });
+  }
+
   if (payBtn) {
     payBtn.addEventListener('click', function() {
       const selectedTariff = document.querySelector('.tariff-option.active');
       const telegramUsername = document.getElementById('telegramUsername');
+      const userEmail = document.getElementById('userEmail');
       
       if (!selectedTariff) {
         alert('Пожалуйста, выберите тариф');
         return;
       }
       
-      if (!telegramUsername || !telegramUsername.value.trim()) {
-        alert('Пожалуйста, введите ваш Telegram username');
+      // Валидация Telegram username
+      const usernameValidation = validateTelegramUsername(telegramUsername?.value || '');
+      if (!usernameValidation.valid) {
+        showFieldError('telegramUsername', 'telegramUsernameError', usernameValidation.message);
         telegramUsername?.focus();
         return;
       }
       
-      // Убираем @ если пользователь его ввел
-      const username = telegramUsername.value.trim().replace('@', '');
+      // Валидация Email
+      const emailValidation = validateEmail(userEmail?.value || '');
+      if (!emailValidation.valid) {
+        showFieldError('userEmail', 'userEmailError', emailValidation.message);
+        userEmail?.focus();
+        return;
+      }
       
-      if (!username || username.length < 3) {
-        alert('Пожалуйста, введите корректный Telegram username');
-        telegramUsername?.focus();
+      // Валидация чекбокса согласия
+      const privacyAgreement = document.getElementById('privacyAgreement');
+      if (!privacyAgreement || !privacyAgreement.checked) {
+        showFieldError('privacyAgreement', 'privacyAgreementError', 'Необходимо согласие с политикой конфиденциальности');
+        privacyAgreement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
       
@@ -478,7 +739,8 @@
       // Отправляем данные на сервер для создания платежа
       createPayment({
         tariff: tariffId,
-        username: username,
+        username: usernameValidation.value,
+        email: emailValidation.value,
         amount: tariffPrices[tariffId]
       });
     });
@@ -490,8 +752,9 @@
       payBtn.disabled = true;
       payBtn.textContent = 'Создание платежа...';
       
-      // TODO: Замените на URL вашего backend
-      const response = await fetch('https://your-backend-url.com/api/create-payment', {
+      // ВАЖНО: Замените на URL вашего backend API
+      // Пример: 'https://your-site.com/api/create-payment'
+      const response = await fetch('https://your-site.com/api/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -584,36 +847,262 @@
       });
     });
 
-    // Card tilt effect - smooth and subtle
+    // Card tilt effect - smooth with lerp for natural movement
     document.querySelectorAll('.feature-card, .advantage-card, .pricing-card, .day-card').forEach(function(card) {
+      // Optimize for 3D transforms
+      card.style.willChange = 'transform';
+      card.style.transformStyle = 'preserve-3d';
+      
+      // Store current and target values for smooth interpolation
+      let currentX = 0;
+      let currentY = 0;
+      let currentY_translate = 0;
+      let currentScale = 1;
+      let targetX = 0;
+      let targetY = 0;
+      let targetY_translate = 0;
+      let targetScale = 1;
+      let isHovering = false;
+      let animationId = null;
+      
+      // Check if this is a featured pricing card
+      const isFeatured = card.classList.contains('featured');
+      const baseScale = isFeatured ? 1.05 : 1;
+      
+      // Linear interpolation for smooth movement
+      const lerp = (start, end, factor) => start + (end - start) * factor;
+      
+      // Animation loop for smooth continuous updates
+      const animate = () => {
+        // Smoothly interpolate towards target - faster response (0.2 instead of 0.12)
+        currentX = lerp(currentX, targetX, 0.2);
+        currentY = lerp(currentY, targetY, 0.2);
+        currentY_translate = lerp(currentY_translate, targetY_translate, 0.2);
+        currentScale = lerp(currentScale, targetScale, 0.2);
+        
+        // Build transform string - always include all values for consistency
+        // This prevents layout shifts when transform is reset
+        const transformStr = `perspective(1000px) rotateX(${currentX}deg) rotateY(${currentY}deg) translateY(${currentY_translate}px) scale(${currentScale})`;
+        card.style.transform = transformStr;
+        
+        // Continue animation if hovering or still moving
+        const stillMoving = 
+          Math.abs(currentX - targetX) > 0.01 || 
+          Math.abs(currentY - targetY) > 0.01 ||
+          Math.abs(currentY_translate - targetY_translate) > 0.01 ||
+          Math.abs(currentScale - targetScale) > 0.001;
+        
+        if (isHovering || stillMoving) {
+          animationId = requestAnimationFrame(animate);
+        } else {
+          animationId = null;
+          // Reset to exact values when done
+          currentX = 0;
+          currentY = 0;
+          currentY_translate = 0;
+          currentScale = baseScale;
+          // Always set transform with all values to prevent layout shifts
+          card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(${baseScale})`;
+        }
+      };
+      
+      card.addEventListener('mouseenter', function() {
+        isHovering = true;
+        targetY_translate = -8;
+        targetScale = baseScale * 1.02;
+        if (!animationId) {
+          animate();
+        }
+      });
+      
       card.addEventListener('mousemove', function(e) {
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        // Более плавный и менее агрессивный tilt
-        const rotateX = (y - centerY) / 35;
-        const rotateY = (centerX - x) / 35;
         
-        gsap.to(card, {
-          rotateX: rotateX,
-          rotateY: rotateY,
-          transformPerspective: 1000,
-          duration: 0.5,
-          ease: 'power1.out'
-        });
+        // Calculate target rotation - более выраженный наклон (делитель 10 вместо 20)
+        targetX = -(y - centerY) / 10;
+        targetY = (x - centerX) / 10;
       });
       
       card.addEventListener('mouseleave', function() {
-        gsap.to(card, {
-          rotateX: 0,
-          rotateY: 0,
-          duration: 0.7,
-          ease: 'power2.out'
-        });
+        isHovering = false;
+        targetX = 0;
+        targetY = 0;
+        targetY_translate = 0;
+        targetScale = baseScale;
       });
     });
+  }
+
+  /* ========== ACTIVE NAVIGATION ========== */
+  {
+    const navLinks = document.querySelectorAll('nav a[href^="#"]');
+    const sections = document.querySelectorAll('section[id]');
+    
+    function updateActiveNav() {
+      const scrollPos = window.scrollY + 150; // Offset for better UX
+      
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        const sectionId = section.getAttribute('id');
+        
+        if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+          navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === `#${sectionId}`) {
+              link.classList.add('active');
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+      });
+      
+      // Handle hero section (at the top)
+      if (window.scrollY < 100) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+        });
+      }
+    }
+    
+    // Update on scroll
+    if (lenis) {
+      lenis.on('scroll', updateActiveNav);
+    } else {
+      window.addEventListener('scroll', updateActiveNav);
+    }
+    
+    // Initial update
+    updateActiveNav();
+  }
+
+  /* ========== CANVAS PARTICLES ========== */
+  {
+    const canvas = document.getElementById('particles-canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let W, H;
+      const particles = [];
+      const particleCount = 50;
+      
+      // Accent color from CSS
+      const accentColor = { r: 201, g: 165, b: 92 };
+      
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+      
+      class Particle {
+        constructor() {
+          this.reset();
+        }
+        
+        reset() {
+          this.x = Math.random() * W;
+          this.y = Math.random() * H;
+          // Very slow, smooth movement
+          this.vx = (Math.random() - 0.5) * 0.3;
+          this.vy = (Math.random() - 0.5) * 0.3;
+          // Varied sizes (1.5 to 4.5)
+          this.radius = 1.5 + Math.random() * 3;
+          // Base opacity varies
+          this.baseOpacity = 0.15 + Math.random() * 0.35;
+          this.opacity = this.baseOpacity;
+          // Smooth direction change timing
+          this.directionChangeTime = 200 + Math.random() * 400;
+          this.directionTimer = Math.random() * this.directionChangeTime;
+          // Target velocity for smooth transitions
+          this.targetVx = this.vx;
+          this.targetVy = this.vy;
+          // Twinkling effect - some particles will fade in/out
+          this.hasTwinkle = Math.random() < 0.65; // 65% of particles will twinkle
+          this.twinklePhase = Math.random() * Math.PI * 2; // Random starting phase
+          this.twinkleSpeed = 0.002 + Math.random() * 0.003; // Varying twinkle speed
+        }
+        
+        update() {
+          // Smooth direction changes
+          this.directionTimer++;
+          if (this.directionTimer >= this.directionChangeTime) {
+            this.directionTimer = 0;
+            this.directionChangeTime = 200 + Math.random() * 400;
+            // New random target direction (very slow)
+            this.targetVx = (Math.random() - 0.5) * 0.3;
+            this.targetVy = (Math.random() - 0.5) * 0.3;
+          }
+          
+          // Smooth interpolation to target velocity (no sharp turns)
+          this.vx += (this.targetVx - this.vx) * 0.01;
+          this.vy += (this.targetVy - this.vy) * 0.01;
+          
+          // Update position
+          this.x += this.vx;
+          this.y += this.vy;
+          
+          // Wrap around edges smoothly
+          if (this.x < -10) this.x = W + 10;
+          if (this.x > W + 10) this.x = -10;
+          if (this.y < -10) this.y = H + 10;
+          if (this.y > H + 10) this.y = -10;
+          
+          // Opacity fluctuation
+          if (this.hasTwinkle) {
+            // Twinkling particles: smooth, prolonged fade in and out
+            // Use a slower, more stretched sine wave for longer invisible periods
+            const time = Date.now() * this.twinkleSpeed * 0.5 + this.twinklePhase;
+            let twinkleValue = Math.sin(time);
+            // Stretch the bottom part (negative values) to make invisible periods longer
+            // Transform: compress positive values, stretch negative values
+            if (twinkleValue < 0) {
+              // Stretch negative values (invisible period) - make them last longer
+              twinkleValue = Math.pow(Math.abs(twinkleValue), 0.3) * -1;
+            } else {
+              // Compress positive values (visible period) - make them shorter
+              twinkleValue = Math.pow(twinkleValue, 1.5);
+            }
+            // Map from -1 to 1 range to 0 to baseOpacity range for smooth fade
+            this.opacity = (twinkleValue + 1) * 0.5 * this.baseOpacity;
+          } else {
+            // Non-twinkling particles: gentle fluctuation
+            this.opacity = this.baseOpacity + Math.sin(Date.now() * 0.001 + this.x * 0.01) * 0.1;
+          }
+        }
+        
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${accentColor.r}, ${accentColor.g}, ${accentColor.b}, ${Math.max(0, this.opacity)})`;
+          ctx.fill();
+        }
+      }
+      
+      // Create particles
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+      
+      function animate() {
+        ctx.clearRect(0, 0, W, H);
+        
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+        
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
+      console.log('Particles canvas initialized');
+    }
   }
 
   console.log('C2 4U Landing initialized successfully');
