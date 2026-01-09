@@ -11,21 +11,25 @@
   
   gsap.registerPlugin(ScrollTrigger);
   
+  // Определяем, мобильное ли устройство (доступно глобально в блоке)
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  
   // Initialize Lenis
   let lenis = null;
   
   if (typeof Lenis !== 'undefined') {
+    
     lenis = new Lenis({
-      duration: 1.4,
+      duration: isMobile ? 1.0 : 1.4, // Быстрее на мобильных для более отзывчивого скролла
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
-      touchMultiplier: 1.5,
+      touchMultiplier: isMobile ? 1.2 : 1.5, // Меньше чувствительность на мобильных
       infinite: false,
-      syncTouch: true,
-      syncTouchLerp: 0.075,
+      syncTouch: isMobile ? false : true, // Отключаем syncTouch на мобильных для более плавного скролла
+      syncTouchLerp: isMobile ? 0.25 : 0.075, // Более быстрое сглаживание на мобильных
     });
     
     // CRITICAL: Sync Lenis with GSAP ScrollTrigger
@@ -38,6 +42,14 @@
     
     // Disable GSAP's lag smoothing for better sync
     gsap.ticker.lagSmoothing(0);
+    
+    // Оптимизация для мобильных устройств
+    if (isMobile) {
+      // Уменьшаем частоту обновления ScrollTrigger на мобильных
+      ScrollTrigger.config({ 
+        autoRefreshEvents: "visibilitychange,DOMContentLoaded,load"
+      });
+    }
     
     // Store globally
     window.lenis = lenis;
@@ -251,53 +263,55 @@
       });
     }
 
-    // Background shapes parallax
-    gsap.utils.toArray('.shape').forEach((shape, i) => {
-      gsap.to(shape, {
-        y: (i + 1) * 100,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: 'body',
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 2
-        }
-      });
-    });
-
-    // Section parallax effects (selective - only on specific sections)
-    gsap.utils.toArray('.about, .what-is, .why-us, .final-cta').forEach(section => {
-      const content = section.querySelector('.container');
-      if (content) {
-        gsap.fromTo(content,
-          { y: 20 },
-          {
-            y: -20,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: 1.5
-            }
+    // Background shapes parallax (отключаем на мобильных для плавности)
+    if (!isMobile) {
+      gsap.utils.toArray('.shape').forEach((shape, i) => {
+        gsap.to(shape, {
+          y: (i + 1) * 100,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: 'body',
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 2
           }
-        );
-      }
-    });
+        });
+      });
 
-    // Photo placeholder parallax
-    const photoPlaceholder = document.querySelector('.photo-placeholder');
-    if (photoPlaceholder) {
-      gsap.to(photoPlaceholder, {
-        y: -40,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.about',
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: 1.5
+      // Section parallax effects (selective - only on specific sections)
+      gsap.utils.toArray('.about, .what-is, .why-us, .final-cta').forEach(section => {
+        const content = section.querySelector('.container');
+        if (content) {
+          gsap.fromTo(content,
+            { y: 20 },
+            {
+              y: -20,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: section,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 1.5
+              }
+            }
+          );
         }
       });
+
+      // Photo placeholder parallax
+      const photoPlaceholder = document.querySelector('.photo-placeholder');
+      if (photoPlaceholder) {
+        gsap.to(photoPlaceholder, {
+          y: -40,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.about',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1.5
+          }
+        });
+      }
     }
 
     // Cards parallax removed to prevent conflict with 3D hover tilt effect
