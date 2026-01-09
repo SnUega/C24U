@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://c24u.com/sitemap.xml
+
+# Disallow admin and private areas (if any)
+Disallow: /api/
+Disallow: /admin/
+
+# Allow CSS and JS for better indexing
+Allow: /css/
+Allow: /js/
+Allow: /img/

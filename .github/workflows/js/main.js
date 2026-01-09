@@ -16,14 +16,16 @@
   
   if (typeof Lenis !== 'undefined') {
     lenis = new Lenis({
-      duration: 1.6,
+      duration: 1.4,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
-      touchMultiplier: 2,
+      touchMultiplier: 1.5,
       infinite: false,
+      syncTouch: true,
+      syncTouchLerp: 0.075,
     });
     
     // CRITICAL: Sync Lenis with GSAP ScrollTrigger
@@ -386,6 +388,8 @@
   const tariffOptions = document.querySelectorAll('.tariff-option');
   const payBtn = document.getElementById('payBtn');
 
+  let savedScrollPosition = 0;
+
   function openModal() {
     if (modal) {
       // Очищаем ошибки валидации
@@ -394,11 +398,12 @@
       clearFieldError('privacyAgreement', 'privacyAgreementError');
       
       // Сохраняем текущую позицию скролла
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
+      savedScrollPosition = window.scrollY || window.pageYOffset;
+      
+      // Блокируем скролл без изменения позиции body
       document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+      document.documentElement.style.overflow = 'hidden';
       
       modal.classList.add('active');
       if (window.lenis) window.lenis.stop();
@@ -474,20 +479,23 @@
           modalBox.removeEventListener('wheel', modalBox._wheelHandler);
           delete modalBox._wheelHandler;
         }
+        // Сбрасываем скролл внутри модалки
+        modalBox.scrollTop = 0;
       }
       
-      // Восстанавливаем скролл
-      const scrollY = document.body.style.top;
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+      // Восстанавливаем скролл страницы
       document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.documentElement.style.overflow = '';
       
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      // Восстанавливаем позицию без анимации
+      if (window.lenis) {
+        window.lenis.start();
+        // Немедленно устанавливаем позицию для Lenis
+        window.lenis.scrollTo(savedScrollPosition, { immediate: true });
+      } else {
+        window.scrollTo(0, savedScrollPosition);
       }
-      
-      if (window.lenis) window.lenis.start();
     }
   }
 
@@ -979,7 +987,7 @@
       const ctx = canvas.getContext('2d');
       let W, H;
       const particles = [];
-      const particleCount = 50;
+      const particleCount = 85;
       
       // Accent color from CSS
       const accentColor = { r: 201, g: 165, b: 92 };
@@ -1081,11 +1089,45 @@
         particles.push(new Particle());
       }
       
+      function dist(p1, p2) {
+        return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+      }
+      
       function animate() {
         ctx.clearRect(0, 0, W, H);
         
+        // Update all particles first
         particles.forEach(p => {
           p.update();
+        });
+        
+        // Draw connections between particles (based on both distance and opacity)
+        for (let i = 0; i < particleCount; i++) {
+          for (let j = i + 1; j < particleCount; j++) {
+            const p1 = particles[i];
+            const p2 = particles[j];
+            const distance = dist(p1, p2);
+            
+            if (distance < 150) {
+              // Connection opacity based on distance AND both particles' opacity
+              const distanceAlpha = (1 - distance / 150) * 0.3;
+              const combinedOpacity = Math.min(p1.opacity, p2.opacity);
+              const alpha = distanceAlpha * (combinedOpacity / 0.5); // Scale by particle visibility
+              
+              if (alpha > 0.01) {
+                ctx.strokeStyle = `rgba(${accentColor.r}, ${accentColor.g}, ${accentColor.b}, ${alpha})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+        
+        // Draw all particles
+        particles.forEach(p => {
           p.draw();
         });
         
@@ -1103,7 +1145,7 @@
       const ctx = canvas.getContext('2d');
       let W, H;
       const particles = [];
-      const particleCount = 80;
+      const particleCount = 95;
       const accentColor = { r: 201, g: 165, b: 92 }; // var(--accent)
       
       function resize() {
@@ -1201,6 +1243,81 @@
       
       animateNetwork();
     }
+  }
+
+  /* ========== EXIT INTENT POPUP ========== */
+  {
+    const exitPopup = document.getElementById('exitPopup');
+    const exitPopupClose = document.getElementById('exitPopupClose');
+    let isPopupShowing = false;
+    const maxShows = 2; // Максимум показов за сессию
+    
+    function showExitPopup() {
+      if (!exitPopup || isPopupShowing) return;
+      
+      // Получаем текущее количество показов
+      const showCount = parseInt(sessionStorage.getItem('exitPopupShowCount') || '0');
+      
+      // Если уже показали максимальное количество раз - не показываем
+      if (showCount >= maxShows) return;
+      
+      isPopupShowing = true;
+      exitPopup.classList.add('active');
+      exitPopup.setAttribute('aria-hidden', 'false');
+      
+      // Увеличиваем счетчик показов
+      sessionStorage.setItem('exitPopupShowCount', (showCount + 1).toString());
+    }
+    
+    function hideExitPopup() {
+      if (!exitPopup) return;
+      isPopupShowing = false;
+      exitPopup.classList.remove('active');
+      exitPopup.setAttribute('aria-hidden', 'true');
+    }
+    
+    // Exit intent detection - отслеживаем движение мыши к верхнему краю
+    let mouseY = 0;
+    document.addEventListener('mousemove', function(e) {
+      mouseY = e.clientY;
+    }, { passive: true });
+    
+    document.addEventListener('mouseleave', function(e) {
+      // Если мышь покинула окно через верхний край и пользователь прокрутил страницу
+      if (e.clientY <= 0 && window.scrollY > 100) {
+        showExitPopup();
+      }
+    }, { passive: true });
+    
+    // Закрытие popup
+    if (exitPopupClose) {
+      exitPopupClose.addEventListener('click', hideExitPopup);
+    }
+    
+    if (exitPopup) {
+      exitPopup.addEventListener('click', function(e) {
+        if (e.target === exitPopup) {
+          hideExitPopup();
+        }
+      });
+    }
+    
+    // При клике на кнопку в popup открываем модальное окно и закрываем popup
+    if (exitPopup) {
+      const popupBtn = exitPopup.querySelector('.open-modal');
+      if (popupBtn) {
+        popupBtn.addEventListener('click', function() {
+          hideExitPopup();
+        });
+      }
+    }
+    
+    // Закрытие по Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && exitPopup && exitPopup.classList.contains('active')) {
+        hideExitPopup();
+      }
+    });
   }
 
 });
