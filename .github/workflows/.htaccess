@@ -75,11 +75,55 @@
 # Защита от просмотра директорий
 Options -Indexes
 
+# ========== ЗАГОЛОВКИ БЕЗОПАСНОСТИ ==========
+<IfModule mod_headers.c>
+  # Защита от clickjacking (запрет встраивания в iframe)
+  Header always set X-Frame-Options "SAMEORIGIN"
+  
+  # Защита от MIME-sniffing
+  Header always set X-Content-Type-Options "nosniff"
+  
+  # Защита от XSS в старых браузерах
+  Header always set X-XSS-Protection "1; mode=block"
+  
+  # Контроль реферера
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  
+  # Permissions Policy (ограничение доступа к API браузера)
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), browsing-topics=()"
+  
+  # HSTS - принудительный HTTPS (раскомментировать после проверки SSL)
+  # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ========== КРАСИВЫЕ URL (без .html) ==========
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # ИСКЛЮЧЕНИЕ: Не обрабатывать запросы к папке api/ (она имеет свой .htaccess)
+  RewriteCond %{REQUEST_URI} ^/api/ [NC]
+  RewriteRule ^ - [L]
+  
+  # Если запрос не файл и не директория
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Перенаправляем /page на /page.html
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^([^/]+)/?$ $1.html [L]
+  
+  # Убираем .html из URL (301 редирект)
+  RewriteCond %{THE_REQUEST} /([^.]+)\.html [NC]
+  RewriteRule ^ /%1 [R=301,L]
+</IfModule>
+
 # ========== ПЕРЕНАПРАВЛЕНИЯ ==========
-# Принудительно HTTPS (раскомментируйте после настройки SSL)
-RewriteEngine On
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Принудительно HTTPS (закомментировано - Timeweb управляет SSL редиректами автоматически)
+# Если нужен ручной редирект, раскомментируйте:
+# RewriteCond %{HTTPS} off
+# RewriteCond %{HTTP:X-Forwarded-Proto} !https
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # ========== ДОСТУП К ФАЙЛАМ ==========
 # Разрешаем доступ к robots.txt и sitemap.xml

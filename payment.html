@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оплата подписки — C2 4U</title>
+  <link rel="icon" href="/img/favicon/favicon.ico" sizes="any">
+  <link rel="icon" href="/img/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/img/favicon/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- YooKassa Widget -->
+  <script src="https://yookassa.ru/checkout-widget/v1/checkout-widget.js"></script>
+  
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: rgba(18, 18, 26, 0.8);
+      --text-primary: #f5f5f7;
+      --text-muted: #8e8e93;
+      --accent: #C9A55F;
+      --accent-hover: #d4b370;
+      --border: rgba(255, 255, 255, 0.08);
+      --success: #4caf50;
+      --error: #f44336;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+    }
+    
+    .bg-animation::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      top: -50%;
+      left: -50%;
+      background: 
+        radial-gradient(ellipse at 20% 30%, rgba(201, 165, 95, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(201, 165, 95, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(18, 18, 26, 0.5) 0%, transparent 70%);
+      animation: bgPulse 20s ease-in-out infinite;
+    }
+    
+    @keyframes bgPulse {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-2%, -2%) scale(1.05); }
+    }
+    
+    /* Grid canvas */
+    #gridCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    /* Container */
+    .container {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    
+    /* Desktop: start from top */
+    @media (min-width: 900px) and (orientation: landscape) {
+      .container {
+        justify-content: flex-start;
+        padding-top: 1.5rem;
+      }
+    }
+    
+    /* Logo */
+    .logo {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 300;
+      font-size: 2rem;
+      letter-spacing: 0.02em;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+    
+    .logo:hover {
+      text-decoration: none;
+    }
+    
+    .logo span {
+      color: var(--accent);
+    }
+    
+    /* Payment Layout */
+    .payment-layout {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .payment-left {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .payment-right {
+      width: 100%;
+    }
+    
+    /* Desktop: Two columns */
+    @media (min-width: 900px) and (orientation: landscape) {
+      .payment-layout {
+        flex-direction: row;
+        max-width: 900px;
+        align-items: flex-start;
+        gap: 2rem;
+      }
+      
+      .payment-left {
+        flex: 1;
+        max-width: 420px;
+      }
+      
+      .payment-right {
+        flex: 1;
+        max-width: 480px;
+      }
+    }
+    
+    /* Order Card (Glassmorphism) */
+    .order-card {
+      background: linear-gradient(135deg, 
+        rgba(201, 165, 95, 0.15) 0%, 
+        rgba(18, 18, 26, 0.9) 50%,
+        rgba(201, 165, 95, 0.1) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(201, 165, 95, 0.2);
+      padding: 2rem;
+      box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(201, 165, 95, 0.1) inset;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .order-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(201, 165, 95, 0.5), 
+        transparent);
+    }
+    
+    .order-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    
+    .order-card-chip {
+      width: 45px;
+      height: 35px;
+      background: linear-gradient(135deg, #C9A55F 0%, #8B7355 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .order-card-chip svg {
+      width: 30px;
+      height: 20px;
+      fill: rgba(0, 0, 0, 0.3);
+    }
+    
+    .order-card-logo {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 300;
+      font-size: 1.2rem;
+      color: var(--text-muted);
+    }
+    
+    .order-card-logo span {
+      color: var(--accent);
+    }
+    
+    .order-details {
+      margin-bottom: 1.5rem;
+    }
+    
+    .order-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+    
+    .order-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.05em;
+    }
+    
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    
+    .order-col {
+      flex: 1;
+    }
+    
+    .order-amount {
+      font-size: 2rem;
+      color: var(--accent);
+    }
+    
+    /* Widget Container */
+    .widget-container {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      margin-bottom: 1.5rem;
+    }
+    
+    @media (min-width: 900px) and (orientation: landscape) {
+      .widget-container {
+        padding: 1.75rem;
+      }
+    }
+    
+    .widget-title {
+      font-size: 0.95rem;
+      color: #333;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .widget-title svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent);
+    }
+    
+    #payment-form {
+      min-height: 200px;
+    }
+    
+    /* Loading */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      color: var(--text-muted);
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Error */
+    .error-message {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      color: var(--error);
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    
+    /* Auto-renewal Info */
+    .auto-renewal-info {
+      background: rgba(201, 165, 95, 0.1);
+      border: 1px solid rgba(201, 165, 95, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    
+    .auto-renewal-info h4 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .auto-renewal-info p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+    }
+    
+    .auto-renewal-info a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .auto-renewal-info a:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+    
+    /* Security Badge */
+    .security-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .security-badge svg {
+      width: 14px;
+      height: 14px;
+      color: var(--success);
+    }
+    
+    /* Back Link */
+    .back-link {
+      text-align: center;
+    }
+    
+    .back-link a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    
+    .back-link a:hover {
+      color: var(--accent);
+    }
+    
+    /* Fallback Button */
+    .fallback-btn {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      background: var(--accent);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      text-decoration: none;
+    }
+    
+    .fallback-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+    
+    /* Success State */
+    .success-state {
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(76, 175, 80, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+    }
+    
+    .success-icon svg {
+      width: 40px;
+      height: 40px;
+      color: var(--success);
+    }
+    
+    .success-state h2 {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 400;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .success-state p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 480px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .logo {
+        font-size: 1.5rem;
+      }
+      
+      .order-card {
+        padding: 1.5rem;
+      }
+      
+      .order-value {
+        font-size: 1.2rem;
+      }
+      
+      .order-amount {
+        font-size: 1.5rem;
+      }
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-hover);
+    }
+    
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) var(--bg-primary);
+    }
+    
+    /* Lenis styles */
+    html.lenis, html.lenis body {
+      height: auto;
+    }
+    
+    .lenis.lenis-smooth {
+      scroll-behavior: auto !important;
+    }
+    
+    .lenis.lenis-smooth [data-lenis-prevent] {
+      overscroll-behavior: contain;
+    }
+    
+    .lenis.lenis-stopped {
+      overflow: hidden;
+    }
+    
+    .lenis.lenis-scrolling iframe {
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation"></div>
+  <canvas id="gridCanvas"></canvas>
+  
+  <div class="container">
+    <a href="/" class="logo">C2<span>4U</span></a>
+    
+    <div class="payment-layout">
+      <!-- Left Column: Order Details + Auto-renewal Info -->
+      <div class="payment-left">
+        <!-- Order Card -->
+        <div class="order-card">
+          <div class="order-card-header">
+            <div class="order-card-chip">
+              <svg viewBox="0 0 30 20">
+                <rect x="2" y="2" width="10" height="7" rx="1"/>
+                <rect x="2" y="11" width="10" height="7" rx="1"/>
+                <rect x="14" y="2" width="14" height="16" rx="1"/>
+              </svg>
+            </div>
+            <div class="order-card-logo">C2<span>4U</span></div>
+          </div>
+          
+          <div class="order-details">
+            <div class="order-label">Подписка</div>
+            <div class="order-value" id="order-description">Загрузка...</div>
+          </div>
+          
+          <div class="order-row">
+            <div class="order-col">
+              <div class="order-label">Telegram</div>
+              <div class="order-value" id="order-username">@username</div>
+            </div>
+            <div class="order-col" style="text-align: right;">
+              <div class="order-label">К оплате</div>
+              <div class="order-value order-amount" id="order-amount">0 ₽</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Auto-renewal Info -->
+        <div class="auto-renewal-info">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+            </svg>
+            Автопродление подписки
+          </h4>
+          <p>
+            При оплате картой подписка будет автоматически продлеваться. 
+            Мы напомним за 3 дня и за 1 день до списания.
+          </p>
+          <p>
+            <a href="/manage" target="_blank">Отключить автопродление →</a> можно в любой момент на странице управления подпиской.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Right Column: Payment Widget -->
+      <div class="payment-right">
+        <div class="widget-container" id="widget-container">
+          <div id="payment-form">
+            <div class="loading">
+              <div class="spinner"></div>
+              <span>Загрузка...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+      
+      <!-- Error Message -->
+      <div class="error-message" id="error-message" style="display: none;"></div>
+      
+      <!-- Fallback Button -->
+      <a href="#" class="fallback-btn" id="fallback-btn" style="display: none;">
+        Перейти к оплате →
+      </a>
+      
+      <!-- Security Badge -->
+      <div class="security-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+        Безопасная оплата через ЮKassa
+      </div>
+      
+      <!-- Back Link -->
+      <div class="back-link">
+        <a href="/">← Вернуться на главную</a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Error Handler -->
+  <script src="/js/error-handler.js"></script>
+  
+  <script>
+    // Получаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tariff = urlParams.get('tariff');
+    const username = urlParams.get('username');
+    const email = urlParams.get('email');
+    
+    // Тарифы
+    const TARIFFS = {
+      '1': { amount: 1500, description: '1 месяц' },
+      '3': { amount: 4500, description: '3 месяца' },
+      '12': { amount: 12500, description: '12 месяцев' }
+    };
+    
+    // Заполняем карточку заказа
+    function fillOrderCard() {
+      const tariffData = TARIFFS[tariff];
+      
+      if (!tariff || !username || !email || !tariffData) {
+        showError('Недостаточно данных для оплаты. Пожалуйста, вернитесь на главную и попробуйте снова.');
+        return false;
+      }
+      
+      document.getElementById('order-description').textContent = tariffData.description;
+      document.getElementById('order-username').textContent = '@' + username.replace('@', '');
+      document.getElementById('order-amount').textContent = tariffData.amount.toLocaleString('ru-RU') + ' ₽';
+      
+      return true;
+    }
+    
+    // Показать ошибку
+    function showError(message) {
+      const errorEl = document.getElementById('error-message');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      document.getElementById('payment-form').innerHTML = '';
+    }
+    
+    // Показать fallback кнопку
+    function showFallback(url) {
+      const fallbackBtn = document.getElementById('fallback-btn');
+      fallbackBtn.href = url;
+      fallbackBtn.style.display = 'block';
+    }
+    
+    // Инициализация виджета
+    async function initWidget() {
+      if (!fillOrderCard()) return;
+      
+      // Определяем API URL
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiBase = isLocalhost ? 'https://c24u.ru' : '';
+      
+      try {
+        // Создаём платёж для виджета
+        const response = await fetch(apiBase + '/api/index.php?action=create-payment-widget', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tariff: tariff,
+            username: username,
+            email: email
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success || !result.confirmationToken) {
+          // Если виджет не работает, показываем fallback
+          console.log('Widget creation failed, using fallback');
+          await createFallbackPayment();
+          return;
+        }
+        
+        // Инициализируем виджет ЮКассы
+        const checkout = new window.YooMoneyCheckoutWidget({
+          confirmation_token: result.confirmationToken,
+          return_url: window.location.origin + '/?payment=success&username=' + encodeURIComponent(username),
+          customization: {
+            colors: {
+              control_primary: '#C9A55F',          // Золотая кнопка
+              control_primary_content: '#12121A'   // Тёмный текст на кнопке
+            }
+          },
+          error_callback: function(error) {
+            console.error('YooKassa widget error:', error);
+            showError('Ошибка виджета оплаты. Используйте кнопку ниже.');
+            createFallbackPayment();
+          }
+        });
+        
+        // Очищаем спиннер и рендерим виджет
+        document.getElementById('payment-form').innerHTML = '';
+        checkout.render('payment-form');
+        
+      } catch (error) {
+        // Используем улучшенную обработку ошибок
+        const errorMsg = typeof getUserFriendlyError === 'function'
+          ? getUserFriendlyError(error)
+          : 'Не удалось загрузить форму оплаты.';
+        showError(errorMsg);
+        await createFallbackPayment();
+      }
+    }
+    
+    // Создание fallback платежа (редирект)
+    async function createFallbackPayment() {
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiBase = isLocalhost ? 'https://c24u.ru' : '';
+      
+      try {
+        const response = await fetch(apiBase + '/api/index.php?action=create-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tariff: tariff,
+            username: username,
+            email: email
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.paymentUrl) {
+          showFallback(result.paymentUrl);
+        } else {
+          showError(result.error || 'Не удалось создать платёж');
+        }
+      } catch (error) {
+        showError('Ошибка соединения с сервером');
+      }
+    }
+    
+    // Запуск
+    document.addEventListener('DOMContentLoaded', initWidget);
+    
+    // ========== GRID WITH CURSOR/TOUCH DISTORTION ==========
+    (function() {
+      const canvas = document.getElementById('gridCanvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      const gridSize = 50;
+      const gridColor = 'rgba(201, 165, 95, 0.06)';
+      
+      // Cursor/touch position with smooth follow
+      const cursor = {
+        x: -1000,
+        y: -1000,
+        targetX: -1000,
+        targetY: -1000,
+        radius: 300,      // Very large distortion area
+        strength: 50,     // Strong distortion
+        active: false
+      };
+      
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      
+      function getDistortion(px, py) {
+        const dx = px - cursor.x;
+        const dy = py - cursor.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > cursor.radius) return { x: 0, y: 0 };
+        
+        // Smooth falloff
+        const factor = 1 - (dist / cursor.radius);
+        const power = factor * factor * cursor.strength;
+        
+        // Distort away from center
+        const angle = Math.atan2(dy, dx);
+        return {
+          x: Math.cos(angle) * power,
+          y: Math.sin(angle) * power
+        };
+      }
+      
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        
+        // Draw vertical lines with distortion
+        for (let x = 0; x <= canvas.width + gridSize; x += gridSize) {
+          ctx.beginPath();
+          for (let y = 0; y <= canvas.height; y += 5) {
+            const d = getDistortion(x, y);
+            const px = x + d.x;
+            const py = y + d.y;
+            
+            if (y === 0) {
+              ctx.moveTo(px, py);
+            } else {
+              ctx.lineTo(px, py);
+            }
+          }
+          ctx.stroke();
+        }
+        
+        // Draw horizontal lines with distortion
+        for (let y = 0; y <= canvas.height + gridSize; y += gridSize) {
+          ctx.beginPath();
+          for (let x = 0; x <= canvas.width; x += 5) {
+            const d = getDistortion(x, y);
+            const px = x + d.x;
+            const py = y + d.y;
+            
+            if (x === 0) {
+              ctx.moveTo(px, py);
+            } else {
+              ctx.lineTo(px, py);
+            }
+          }
+          ctx.stroke();
+        }
+        
+        // Subtle glow at cursor position when active
+        if (cursor.active || cursor.x > 0) {
+          const gradient = ctx.createRadialGradient(cursor.x, cursor.y, 0, cursor.x, cursor.y, cursor.radius * 0.6);
+          gradient.addColorStop(0, 'rgba(201, 165, 95, 0.04)');
+          gradient.addColorStop(1, 'transparent');
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(cursor.x, cursor.y, cursor.radius * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      function animate() {
+        // Smooth follow for cursor
+        cursor.x += (cursor.targetX - cursor.x) * 0.15;
+        cursor.y += (cursor.targetY - cursor.y) * 0.15;
+        
+        draw();
+        requestAnimationFrame(animate);
+      }
+      
+      // Mouse events
+      canvas.style.pointerEvents = 'none';
+      
+      document.addEventListener('mousemove', (e) => {
+        cursor.targetX = e.clientX;
+        cursor.targetY = e.clientY;
+        cursor.active = true;
+      });
+      
+      document.addEventListener('mouseleave', () => {
+        cursor.targetX = -1000;
+        cursor.targetY = -1000;
+        cursor.active = false;
+      });
+      
+      // Touch events
+      document.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        cursor.targetX = touch.clientX;
+        cursor.targetY = touch.clientY;
+        cursor.x = touch.clientX;
+        cursor.y = touch.clientY;
+        cursor.active = true;
+      }, { passive: true });
+      
+      document.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        cursor.targetX = touch.clientX;
+        cursor.targetY = touch.clientY;
+        cursor.active = true;
+      }, { passive: true });
+      
+      document.addEventListener('touchend', () => {
+        cursor.active = false;
+        // Fade out smoothly
+        cursor.targetX = cursor.x;
+        cursor.targetY = cursor.y;
+        setTimeout(() => {
+          if (!cursor.active) {
+            cursor.targetX = -1000;
+            cursor.targetY = -1000;
+          }
+        }, 500);
+      });
+      
+      // Initialize
+      resize();
+      window.addEventListener('resize', resize);
+      animate();
+    })();
+  </script>
+  
+  <!-- Lenis Smooth Scroll -->
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script>
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      smoothWheel: true
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+  </script>
+</body>
+</html>

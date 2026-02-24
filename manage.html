@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление подпиской — C2 4U</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/x-icon" href="img/favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="img/favicon/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #12121a;
+      --text: #f5f5f7;
+      --text-muted: #8e8e93;
+      --accent: #C9A55F;
+      --border: rgba(255,255,255,0.08);
+      --error: #f44336;
+      --success: #4caf50;
+      --warning: #ff9800;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    html.lenis, html.lenis body {
+      height: auto;
+    }
+    
+    .lenis.lenis-smooth {
+      scroll-behavior: auto !important;
+    }
+    
+    .lenis.lenis-smooth [data-lenis-prevent] {
+      overscroll-behavior: contain;
+    }
+    
+    .lenis.lenis-stopped {
+      overflow: hidden;
+    }
+    
+    body {
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #b8944e;
+    }
+    
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) var(--bg);
+    }
+    
+    /* Sticky Header */
+    .legal-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+    }
+    
+    .legal-header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    
+    .back-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .logo {
+      font-family: 'Unbounded', 'Montserrat', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.3s ease;
+    }
+    
+    .logo span {
+      color: var(--accent);
+    }
+    
+    .logo:hover {
+      color: var(--accent);
+    }
+    
+    .legal-header-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    
+    /* Container */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    /* Main Content */
+    .manage-content {
+      padding: 3rem 0 5rem;
+    }
+    
+    .manage-title {
+      font-family: 'Unbounded', 'Montserrat', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.2rem);
+      font-weight: 300;
+      margin-bottom: 1rem;
+      color: var(--text);
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    
+    .manage-subtitle {
+      font-size: 1rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    
+    /* Cards */
+    .manage-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .manage-card h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .manage-card h2 svg {
+      width: 24px;
+      height: 24px;
+      color: var(--accent);
+    }
+    
+    .manage-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+    
+    /* Form */
+    .manage-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .form-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    
+    .form-label .required {
+      color: var(--error);
+    }
+    
+    .form-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      color: var(--text);
+      font-family: inherit;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(201, 165, 95, 0.15);
+    }
+    
+    .form-input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+    
+    .form-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    
+    /* Checkbox */
+    .form-checkbox {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    
+    .form-checkbox-input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .form-checkbox-label {
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background: #b8944e;
+    }
+    
+    .btn-danger {
+      background: transparent;
+      border: 2px solid var(--error);
+      color: var(--error);
+    }
+    
+    .btn-danger:hover:not(:disabled) {
+      background: var(--error);
+      color: #fff;
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    /* Subscription Status Card */
+    .subscription-status {
+      display: none;
+    }
+    
+    .subscription-status.show {
+      display: block;
+    }
+    
+    .status-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    
+    .status-item-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    
+    .status-item-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .status-badge.active {
+      background: rgba(76, 175, 80, 0.15);
+      color: var(--success);
+    }
+    
+    .status-badge.expired {
+      background: rgba(244, 67, 54, 0.15);
+      color: var(--error);
+    }
+    
+    .status-badge.cancelled {
+      background: rgba(255, 152, 0, 0.15);
+      color: var(--warning);
+    }
+    
+    .status-badge svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    /* Auto-renew indicator */
+    .auto-renew-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    
+    .auto-renew-status.enabled {
+      border-color: rgba(76, 175, 80, 0.3);
+    }
+    
+    .auto-renew-status.disabled {
+      border-color: rgba(255, 152, 0, 0.3);
+    }
+    
+    .auto-renew-icon {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .auto-renew-icon.enabled {
+      color: var(--success);
+    }
+    
+    .auto-renew-icon.disabled {
+      color: var(--warning);
+    }
+    
+    .auto-renew-text {
+      flex: 1;
+    }
+    
+    .auto-renew-text strong {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    
+    .auto-renew-text span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    
+    /* Warning & Info Boxes */
+    .warning-box {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .warning-box p {
+      color: var(--error);
+      margin: 0;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .warning-box svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    /* Success Message */
+    .success-message {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      display: none;
+    }
+    
+    .success-message.show {
+      display: block;
+      margin-bottom: 2rem;
+    }
+    
+    .success-message svg {
+      width: 48px;
+      height: 48px;
+      color: var(--success);
+      margin-bottom: 1rem;
+    }
+    
+    .success-message h3 {
+      color: var(--success);
+      margin-bottom: 0.5rem;
+    }
+    
+    .success-message p {
+      color: var(--text-muted);
+      margin: 0;
+    }
+    
+    /* Error Message */
+    .error-message {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .error-message svg {
+      width: 20px;
+      height: 20px;
+      color: var(--error);
+      flex-shrink: 0;
+    }
+    
+    .error-message span {
+      color: var(--error);
+      font-size: 0.9rem;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Loading spinner */
+    .btn .spinner {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Info Section */
+    .info-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    
+    .info-section h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    
+    .info-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .info-section li {
+      padding: 0.5rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .info-section li svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .info-section li strong {
+      white-space: nowrap;
+      display: inline-block;
+    }
+    
+    /* Contact */
+    .contact-note {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .contact-note p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    
+    .contact-note a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    
+    .contact-note a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Hidden */
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        font-size: 15px;
+      }
+      
+      .legal-header-title {
+        display: none;
+      }
+      
+      .manage-content {
+        padding: 2rem 0 4rem;
+      }
+      
+      .manage-card {
+        padding: 1.5rem;
+      }
+      
+      .container {
+        padding: 0 1rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .back-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+      
+      .back-btn span {
+        display: none;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+      
+      .status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="legal-header">
+    <div class="container">
+      <a href="/" class="back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span>На главную</span>
+      </a>
+      <a href="/" class="logo">C2<span>4U</span></a>
+      <span class="legal-header-title">Управление подпиской</span>
+    </div>
+  </header>
+
+  <main class="manage-content">
+    <div class="container">
+      <h1 class="manage-title">Управление подпиской</h1>
+      <p class="manage-subtitle">Проверьте статус подписки и управляйте автоплатежами</p>
+
+      <!-- Step 1: Search Subscription -->
+      <div class="manage-card" id="searchCard">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          Найти подписку
+        </h2>
+        <p>Введите email, указанный при оформлении подписки</p>
+        
+        <form class="manage-form" id="searchForm">
+          <div class="form-group">
+            <label for="searchEmail" class="form-label">Email <span class="required">*</span></label>
+            <input 
+              type="email" 
+              id="searchEmail" 
+              class="form-input" 
+              placeholder="your@email.com"
+              required
+            >
+          </div>
+          
+          <button type="submit" class="btn btn-primary" id="searchBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            Найти подписку
+          </button>
+        </form>
+      </div>
+
+      <!-- Step 2: Subscription Status (hidden by default) -->
+      <div class="manage-card subscription-status" id="statusCard">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          Информация о подписке
+        </h2>
+        
+        <div class="status-grid">
+          <div class="status-item">
+            <span class="status-item-label">Email</span>
+            <span class="status-item-value" id="subEmail">—</span>
+          </div>
+          <div class="status-item">
+            <span class="status-item-label">Telegram</span>
+            <span class="status-item-value" id="subUsername">—</span>
+          </div>
+          <div class="status-item">
+            <span class="status-item-label">Статус</span>
+            <span class="status-badge" id="subStatus">—</span>
+          </div>
+          <div class="status-item">
+            <span class="status-item-label">Оплачено до</span>
+            <span class="status-item-value" id="subPaidUntil">—</span>
+          </div>
+          <div class="status-item">
+            <span class="status-item-label">Осталось дней</span>
+            <span class="status-item-value" id="subDaysLeft">—</span>
+          </div>
+        </div>
+        
+        <!-- Auto-renew status -->
+        <div class="auto-renew-status" id="autoRenewStatus">
+          <svg class="auto-renew-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 1l4 4-4 4"/>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+            <path d="m7 23-4-4 4-4"/>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
+          <div class="auto-renew-text">
+            <strong id="autoRenewTitle">Автопродление</strong>
+            <span id="autoRenewDesc">Статус автоматического продления</span>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" id="newSearchBtn" style="width: 100%;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          Найти другую подписку
+        </button>
+      </div>
+
+      <!-- Step 3: Card Unbind Form (hidden by default) -->
+      <div class="manage-card subscription-status" id="unbindCard">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          Отвязать карту
+        </h2>
+        <p>Отвяжите карту, чтобы отменить автоматическое продление подписки</p>
+        
+        <div class="warning-box">
+          <p>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>После отвязки карты автоматическое продление будет отключено. Доступ к материалам сохранится до конца оплаченного периода.</span>
+          </p>
+        </div>
+        
+        <form class="manage-form" id="unbindForm">
+          <label class="form-checkbox">
+            <input type="checkbox" class="form-checkbox-input" id="unbindConfirm" required>
+            <span class="form-checkbox-label">
+              Я подтверждаю, что хочу отвязать карту и отменить автоматическое продление подписки
+            </span>
+          </label>
+          
+          <button type="submit" class="btn btn-danger" id="unbindBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Отвязать карту
+          </button>
+        </form>
+      </div>
+      
+      <!-- Success Message -->
+      <div class="success-message" id="successMessage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <h3>Готово!</h3>
+        <p id="successText">Операция выполнена успешно.</p>
+      </div>
+
+      <!-- How to Unbind Card - Instruction -->
+      <div class="info-section" style="margin-bottom: 2rem;">
+        <h3>📋 Как отвязать карту и отменить автоплатёж</h3>
+        <ul>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor" stroke="none">1</text>
+            </svg>
+            <strong>Шаг&nbsp;1:</strong> Введите email, указанный при оформлении подписки
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor" stroke="none">2</text>
+            </svg>
+            <strong>Шаг&nbsp;2:</strong> Нажмите «Найти подписку» — отобразится информация о вашей подписке
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor" stroke="none">3</text>
+            </svg>
+            <strong>Шаг&nbsp;3:</strong> В блоке «Отвязать карту» поставьте галочку подтверждения
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor" stroke="none">4</text>
+            </svg>
+            <strong>Шаг&nbsp;4:</strong> Нажмите кнопку «Отвязать карту» — автоплатёж будет отменён
+          </li>
+        </ul>
+      </div>
+
+      <!-- Info Section -->
+      <div class="info-section">
+        <h3>Важная информация</h3>
+        <ul>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Отвязка карты происходит мгновенно
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Доступ к клубу сохраняется до конца оплаченного периода
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Вы можете заново оформить подписку в любой момент
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Данные карты не хранятся на нашем сервере
+          </li>
+        </ul>
+      </div>
+
+      <div class="contact-note">
+        <p>Возникли вопросы? Напишите нам: <a href="mailto:info@c24u.ru">info@c24u.ru</a></p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // API URL detection
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_BASE = isLocalhost ? 'https://c24u.ru' : '';
+    
+    // Current subscription data
+    let currentSubscription = null;
+    
+    // DOM Elements
+    const searchCard = document.getElementById('searchCard');
+    const statusCard = document.getElementById('statusCard');
+    const unbindCard = document.getElementById('unbindCard');
+    const successMessage = document.getElementById('successMessage');
+    
+    // Search form
+    document.getElementById('searchForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('searchEmail').value.trim();
+      if (!email) return;
+      
+      const btn = document.getElementById('searchBtn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg> Поиск...';
+      
+      try {
+        const response = await fetch(API_BASE + '/api/index.php?action=get-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.subscription) {
+          currentSubscription = data.subscription;
+          showSubscriptionStatus(data.subscription);
+        } else {
+          showError(data.error || 'Подписка не найдена');
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        showError('Ошибка соединения. Попробуйте позже.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    });
+    
+    // Show subscription status
+    function showSubscriptionStatus(sub) {
+      document.getElementById('subEmail').textContent = sub.email;
+      document.getElementById('subUsername').textContent = '@' + sub.username;
+      document.getElementById('subPaidUntil').textContent = sub.paid_until_formatted;
+      document.getElementById('subDaysLeft').textContent = sub.is_expired ? '0' : sub.days_left;
+      
+      // Status badge
+      const statusBadge = document.getElementById('subStatus');
+      let statusText, statusClass;
+      if (sub.is_expired) {
+        statusText = 'Истекла';
+        statusClass = 'expired';
+      } else if (sub.status === 'cancelled') {
+        statusText = 'Отменена';
+        statusClass = 'cancelled';
+      } else {
+        statusText = 'Активна';
+        statusClass = 'active';
+      }
+      statusBadge.textContent = statusText;
+      statusBadge.className = 'status-badge ' + statusClass;
+      
+      // Auto-renew status
+      const autoRenewEl = document.getElementById('autoRenewStatus');
+      const autoRenewIcon = autoRenewEl.querySelector('.auto-renew-icon');
+      const autoRenewTitle = document.getElementById('autoRenewTitle');
+      const autoRenewDesc = document.getElementById('autoRenewDesc');
+      
+      if (sub.auto_renew && sub.has_card) {
+        autoRenewEl.className = 'auto-renew-status enabled';
+        autoRenewIcon.className = 'auto-renew-icon enabled';
+        autoRenewTitle.textContent = 'Автопродление включено';
+        autoRenewDesc.textContent = 'Подписка будет автоматически продлена';
+      } else {
+        autoRenewEl.className = 'auto-renew-status disabled';
+        autoRenewIcon.className = 'auto-renew-icon disabled';
+        autoRenewTitle.textContent = 'Автопродление отключено';
+        autoRenewDesc.textContent = sub.has_card ? 'Карта привязана, но автопродление отключено' : 'Карта не привязана';
+      }
+      
+      // Show/hide cards
+      searchCard.classList.add('hidden');
+      statusCard.classList.add('show');
+      
+      // Show unbind card only if there's a card attached
+      if (sub.has_card && !sub.is_expired) {
+        unbindCard.classList.add('show');
+      } else {
+        unbindCard.classList.remove('show');
+      }
+      
+      successMessage.classList.remove('show');
+    }
+    
+    // New search button
+    document.getElementById('newSearchBtn').addEventListener('click', function() {
+      currentSubscription = null;
+      searchCard.classList.remove('hidden');
+      statusCard.classList.remove('show');
+      unbindCard.classList.remove('show');
+      successMessage.classList.remove('show');
+      document.getElementById('searchEmail').value = '';
+      document.getElementById('unbindConfirm').checked = false;
+    });
+    
+    // Unbind form
+    document.getElementById('unbindForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!currentSubscription) {
+        showError('Сначала найдите подписку');
+        return;
+      }
+      
+      const confirmed = document.getElementById('unbindConfirm').checked;
+      if (!confirmed) {
+        showError('Необходимо подтвердить действие');
+        return;
+      }
+      
+      const btn = document.getElementById('unbindBtn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg> Обработка...';
+      
+      try {
+        const response = await fetch(API_BASE + '/api/index.php?action=detach-card', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: currentSubscription.email,
+            username: currentSubscription.username,
+            confirm: true
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Show success
+          unbindCard.classList.remove('show');
+          document.getElementById('successText').textContent = 'Карта успешно отвязана. Автоматическое продление подписки отключено.';
+          successMessage.classList.add('show');
+          
+          // Update status
+          currentSubscription.has_card = false;
+          currentSubscription.auto_renew = false;
+          
+          // Update auto-renew display
+          const autoRenewEl = document.getElementById('autoRenewStatus');
+          const autoRenewIcon = autoRenewEl.querySelector('.auto-renew-icon');
+          autoRenewEl.className = 'auto-renew-status disabled';
+          autoRenewIcon.className = 'auto-renew-icon disabled';
+          document.getElementById('autoRenewTitle').textContent = 'Автопродление отключено';
+          document.getElementById('autoRenewDesc').textContent = 'Карта отвязана';
+        } else {
+          showError(data.error || 'Произошла ошибка');
+        }
+      } catch (error) {
+        console.error('Unbind error:', error);
+        showError('Ошибка соединения. Попробуйте позже.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    });
+    
+    // Show error
+    function showError(message) {
+      const existingError = document.querySelector('.error-message');
+      if (existingError) existingError.remove();
+      
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        <span>${message}</span>
+      `;
+      
+      // Insert in appropriate form
+      const targetForm = statusCard.classList.contains('show') 
+        ? document.getElementById('unbindForm')
+        : document.getElementById('searchForm');
+      
+      targetForm.insertBefore(errorDiv, targetForm.querySelector('.btn'));
+      
+      setTimeout(() => errorDiv.remove(), 5000);
+    }
+  </script>
+  
+  <!-- Lenis Smooth Scroll -->
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script>
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      smoothWheel: true
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+  </script>
+</body>
+</html>

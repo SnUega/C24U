@@ -1,4 +1,4 @@
-﻿ /* ========== CSS VARIABLES ========== */
+﻿/* ========== CSS VARIABLES ========== */
 :root {
   --bg: #0a0c10;
   --bg-lighter: #12151c;
@@ -97,6 +97,75 @@ p {
   font-size: clamp(1rem, 1.2vw, 1.15rem);
   color: var(--text-muted);
   max-width: 56rem;
+}
+
+/* ========== GSAP ANIMATION INITIAL STATES ========== */
+/* Начальные состояния для элементов, которые анимируются через GSAP */
+.section-header h2 {
+  opacity: 0;
+  transform: translateY(20px);
+  letter-spacing: 0.05em;
+}
+
+.section-header p {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.feature-card,
+.day-card,
+.advantage-card,
+.pricing-card {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.faq-item {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.step {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.about-content h2,
+.about-content .subtitle,
+.about-content p,
+.about-stats,
+.about-content .mt-lg {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Photo placeholder - изображение должно быть видно всегда */
+.about .photo-placeholder {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.about .photo-placeholder-content img {
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.testimonial-card {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.final-cta h2 {
+  opacity: 0;
+  transform: translateY(20px);
+  letter-spacing: 0.05em;
+}
+
+.final-cta p,
+.final-cta .btn {
+  opacity: 0;
+  transform: translateY(20px);
 }
 
 strong {
@@ -598,6 +667,9 @@ nav a.active::after {
 .hero h1 {
   margin-bottom: 1.5rem;
   text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(20px);
+  letter-spacing: 0.1em;
 }
 
 .hero h1 .hero-no-break {
@@ -625,6 +697,8 @@ nav a.active::after {
   font-size: clamp(1.1rem, 1.5vw, 1.3rem);
   margin-bottom: 2.5rem;
   max-width: 600px;
+  opacity: 0;
+  transform: translateX(20px) translateY(20px);
 }
 
 .hero-cta {
@@ -632,6 +706,8 @@ nav a.active::after {
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 3rem;
+  opacity: 0;
+  transform: translateX(20px) translateY(20px);
 }
 
 .hero-features {
@@ -640,6 +716,8 @@ nav a.active::after {
   gap: 2rem;
   padding-top: 2rem;
   border-top: 1px solid var(--border);
+  opacity: 0;
+  transform: translateX(20px) translateY(20px);
 }
 
 .hero-feature {
@@ -1838,6 +1916,47 @@ footer {
   color: var(--accent);
 }
 
+.footer-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+}
+
+.footer-legal-links a {
+  position: relative;
+}
+
+.footer-legal-links a:not(:last-child)::after {
+  content: '·';
+  position: absolute;
+  right: -0.9rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+  .footer-legal-links {
+    justify-content: center;
+    gap: 0.5rem 1rem;
+  }
+  
+  .footer-legal-links a:not(:last-child)::after {
+    right: -0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-legal-links {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .footer-legal-links a:not(:last-child)::after {
+    display: none;
+  }
+}
+
 /* ========== MODAL ========== */
 .modal {
   position: fixed;
@@ -2111,6 +2230,279 @@ footer {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-top: 1rem;
+}
+
+/* ========== CONFIRM USERNAME MODAL ========== */
+.confirm-modal-box {
+  max-width: 420px;
+  text-align: center;
+}
+
+.confirm-username-display {
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.confirm-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.confirm-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.confirm-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.confirm-warning-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #ffc107;
+}
+
+.confirm-warning p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.confirm-buttons .btn {
+  flex: 1;
+  padding: 1rem;
+}
+
+/* Стили для btn-secondary в модальных окнах */
+.modal .btn-secondary,
+.confirm-modal .btn-secondary,
+.invite-modal .btn-secondary,
+.close-confirm-modal .btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.modal .btn-secondary:hover,
+.confirm-modal .btn-secondary:hover,
+.invite-modal .btn-secondary:hover,
+.close-confirm-modal .btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ========== INVITE LINK MODAL ========== */
+.invite-modal-box {
+  max-width: 450px;
+  text-align: center;
+}
+
+.invite-success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: rgba(var(--accent-rgb), 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invite-success-icon svg {
+  width: 48px;
+  height: 48px;
+  color: var(--accent);
+}
+
+.invite-link-container {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.invite-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.invite-link {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--accent);
+  word-break: break-all;
+  text-decoration: none;
+  padding-right: 2.5rem;
+  transition: color 0.2s ease;
+}
+
+.invite-link:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.invite-copy-btn {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.invite-copy-btn svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.invite-copy-btn:hover {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.invite-copy-btn:hover svg {
+  color: var(--accent);
+}
+
+.invite-copy-btn.copied {
+  border-color: #4caf50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.invite-copy-btn.copied svg {
+  color: #4caf50;
+}
+
+.invite-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.invite-warning-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #f44336;
+}
+
+.invite-warning p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.invite-warning strong {
+  color: #f44336;
+}
+
+.invite-buttons {
+  margin-bottom: 1rem;
+}
+
+.invite-open-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1.2rem;
+  font-size: 1.1rem;
+}
+
+.invite-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ========== CLOSE CONFIRM MODAL ========== */
+.close-confirm-box {
+  max-width: 380px;
+  text-align: center;
+}
+
+.close-confirm-box h3 {
+  color: #f44336;
+}
+
+.close-confirm-box p {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.btn-danger {
+  background: #f44336;
+  border: none;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #d32f2f;
+}
+
+/* ========== NOTIFICATIONS ========== */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
 }
 
 /* ========== SCROLLBAR ========== */

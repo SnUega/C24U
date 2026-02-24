@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -34,7 +34,11 @@
 <meta property="twitter:image" content="https://c24u.ru/img/OG.png">
 
 <!-- Favicon -->
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/x-icon" href="/img/favicon/favicon.ico">
+<link rel="icon" type="image/svg+xml" href="/img/favicon/favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/img/favicon/favicon-96x96.png">
+<link rel="manifest" href="/img/favicon/site.webmanifest">
 
 <!-- Preconnect для быстрой загрузки внешних ресурсов -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -51,7 +55,7 @@
 <!-- Main Stylesheet -->
 <link rel="stylesheet" href="css/main.css">
 
-<!-- GSAP - загружаем асинхронно, но до main.js -->
+<!-- GSAP - загружаем синхронно перед main.js -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 <!-- Lenis Smooth Scroll -->
@@ -98,18 +102,22 @@
       </div>
       <div class="nav-contacts">
         <div class="nav-contacts-title">Контакты</div>
-        <a href="mailto:hello@c24u.club" class="nav-contact-item">
-          <span class="nav-contact-icon">?</span>
-          hello@c24u.club
+        <a href="mailto:info@c24u.ru" class="nav-contact-item">
+          <span class="nav-contact-icon">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+          </span>
+          info@c24u.ru
         </a>
-        <a href="https://t.me/c24u_club" target="_blank" class="nav-contact-item">
+        <a href="https://t.me/uchitorrium" target="_blank" class="nav-contact-item">
           <span class="nav-contact-icon">
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.015.093.034.306.019.472z"/></svg>
           </span>
-          @c24u_club
+          @uchitorrium
         </a>
         <div class="nav-socials">
-          <a href="#" target="_blank" aria-label="Telegram">
+          <a href="https://t.me/uchitorrium" target="_blank" aria-label="Telegram">
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.015.093.034.306.019.472z"/></svg>
           </a>
           <a href="#" target="_blank" aria-label="Instagram">
@@ -197,7 +205,7 @@
           <div class="photo-frame"></div>
           <div class="photo-frame photo-frame-2"></div>
           <div class="photo-placeholder-content">
-            <img src="img/photo.PNG" alt="Преподаватель английского языка C2 4U с 24-летним опытом" loading="lazy">
+            <img src="img/photo.PNG" alt="Преподаватель английского языка C2 4U с 24-летним опытом" loading="lazy" onerror="console.error('Failed to load image:', this.src); if(this.src.startsWith('img/')) { this.src='/img/photo.PNG'; } else { this.src='img/photo.PNG'; }">
           </div>
         </div>
       </div>
@@ -593,9 +601,9 @@
         <div class="faq-answer">
           <div class="faq-answer-content">
             <p>Полный доступ включает: ежедневные задания по всем навыкам, авторские материалы, подборки ресурсов, участие в обсуждениях и возможность задавать вопросы преподавателю.</p>
-          </div>
-        </div>
-      </div>
+    </div>
+    </div>
+    </div>
     </div>
   </div>
 </section>
@@ -639,10 +647,10 @@
       </div>
       <div class="footer-contact">
         <h4>Контакты</h4>
-        <p>Email: <a href="mailto:hello@c24u.club">hello@c24u.club</a></p>
-        <p>Telegram: <a href="https://t.me/c24u_club" target="_blank">@c24u_club</a></p>
+        <p>Email: <a href="mailto:info@c24u.ru">info@c24u.ru</a></p>
+        <p>Telegram: <a href="https://t.me/uchitorrium" target="_blank">@uchitorrium</a></p>
         <div class="social-links">
-          <a href="#" class="social-link" aria-label="Telegram" target="_blank">
+          <a href="https://t.me/uchitorrium" class="social-link" aria-label="Telegram" target="_blank">
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.015.093.034.306.019.472z"/></svg>
           </a>
           <a href="#" class="social-link" aria-label="Instagram" target="_blank">
@@ -656,7 +664,12 @@
     </div>
     <div class="footer-bottom">
       <p>© 2024 C2 4U. Все права защищены.</p>
-      <a href="#">Политика конфиденциальности</a>
+      <div class="footer-legal-links">
+        <a href="/privacy.html">Политика конфиденциальности</a>
+        <a href="/offer.html">Публичная оферта</a>
+        <a href="/recurring.html">Рекуррентные платежи</a>
+        <a href="/manage.html">Управление подпиской</a>
+      </div>
     </div>
   </div>
 </footer>
@@ -708,7 +721,7 @@
       <small class="form-error" id="telegramUsernameError"></small>
     </div>
     <div class="modal-form">
-      <label for="userEmail" class="form-label">Email для чека об оплате <span class="required">*</span></label>
+      <label for="userEmail" class="form-label">Email для связи <span class="required">*</span></label>
       <input 
         type="email" 
         id="userEmail" 
@@ -717,7 +730,7 @@
         required
         autocomplete="email"
       >
-      <small class="form-hint">На этот email будет отправлен чек об оплате</small>
+      <small class="form-hint">Email для связи и уведомлений</small>
       <small class="form-error" id="userEmailError"></small>
     </div>
     <div class="modal-form">
@@ -729,13 +742,94 @@
           required
         >
         <span class="form-checkbox-label">
-          Я согласен с <a href="#" target="_blank" class="form-link">политикой конфиденциальности</a>
+          Я согласен с <a href="/privacy.html" target="_blank" class="form-link">политикой конфиденциальности</a>, <a href="/offer.html" target="_blank" class="form-link">публичной офертой</a> и <a href="/recurring.html" target="_blank" class="form-link">условиями рекуррентных платежей</a>
         </span>
       </label>
       <small class="form-error" id="privacyAgreementError"></small>
     </div>
     <button class="btn btn-primary" id="payBtn">Оплатить и получить доступ</button>
     <p class="modal-note">После оплаты вы автоматически получите приглашение в Telegram-канал</p>
+  </div>
+</div>
+
+<!-- Модальное окно подтверждения username -->
+<div class="modal confirm-modal" id="confirmUsernameModal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-hidden="true">
+  <div class="modal-box confirm-modal-box">
+    <h3 id="confirm-modal-title">Проверьте данные</h3>
+    <p class="modal-subtitle">Убедитесь, что указали правильный Telegram username</p>
+    
+    <div class="confirm-username-display">
+      <span class="confirm-label">Ваш Telegram:</span>
+      <span class="confirm-value" id="confirmUsernameValue">@username</span>
+    </div>
+    
+    <div class="confirm-warning">
+      <svg class="confirm-warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p>Ссылка-приглашение будет выдана именно этому аккаунту. Проверьте, что это ваш username, без опечаток.</p>
+    </div>
+    
+    <div class="confirm-buttons">
+      <button class="btn btn-secondary" id="confirmUsernameBack">Изменить</button>
+      <button class="btn btn-primary" id="confirmUsernameConfirm">Всё верно, оплатить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно с invite link (защищённое) -->
+<div class="modal invite-modal" id="inviteLinkModal" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title" aria-hidden="true">
+  <div class="modal-box invite-modal-box">
+    <div class="invite-success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    
+    <h3 id="invite-modal-title">Оплата успешна!</h3>
+    <p class="modal-subtitle">Добро пожаловать в C2 4U</p>
+    
+    <div class="invite-link-container">
+      <span class="invite-label">Ваша ссылка для входа в канал:</span>
+      <a href="javascript:void(0)" class="invite-link" id="inviteLinkValue" target="_blank" rel="noopener">Загрузка...</a>
+      <button class="invite-copy-btn" id="copyInviteLink" title="Копировать ссылку">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="invite-warning">
+      <svg class="invite-warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p><strong>Важно!</strong> Ссылка одноразовая и действует 1 час. Скопируйте её или перейдите прямо сейчас.</p>
+    </div>
+    
+    <div class="invite-buttons">
+      <a href="javascript:void(0)" class="btn btn-primary invite-open-btn" id="openInviteLink" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/>
+        </svg>
+        Открыть Telegram
+      </a>
+    </div>
+    
+    <p class="invite-note">После перехода по ссылке вы станете участником канала</p>
+  </div>
+</div>
+
+<!-- Модальное окно подтверждения закрытия -->
+<div class="modal close-confirm-modal" id="closeConfirmModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-box close-confirm-box">
+    <h3>Вы уверены?</h3>
+    <p>Если вы закроете это окно, ссылка-приглашение будет потеряна. Вы не сможете получить её повторно.</p>
+    
+    <div class="confirm-buttons">
+      <button class="btn btn-secondary" id="closeConfirmCancel">Отмена</button>
+      <button class="btn btn-danger" id="closeConfirmYes">Да, закрыть</button>
+    </div>
   </div>
 </div>
 
@@ -749,14 +843,14 @@
     "url": "https://c24u.ru",
     "logo": "https://c24u.ru/img/OG.png",
     "description": "Закрытый клуб английского языка уровня C2. Система, практика, дисциплина. 24 года опыта преподавания.",
-    "sameAs": [
-      "https://t.me/c24u_club"
-    ],
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "email": "hello@c24u.club",
-      "contactType": "Customer Service"
-    }
+      "sameAs": [
+        "https://t.me/uchitorrium"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "info@c24u.ru",
+        "contactType": "Customer Service"
+      }
   },
   {
     "@context": "https://schema.org",
@@ -839,6 +933,8 @@
 ]
 </script>
 
+<!-- Error Handler -->
+<script src="js/error-handler.js"></script>
 <!-- Main JavaScript -->
 <script src="js/main.js" defer></script>
 

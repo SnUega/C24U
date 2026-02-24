@@ -1,4 +1,5 @@
-﻿document.addEventListener('DOMContentLoaded', function() {
+﻿// Функция инициализации анимаций
+function initAnimations() {
   'use strict';
 
   /* ========== LENIS + GSAP SCROLLTRIGGER INTEGRATION ========== */
@@ -6,6 +7,8 @@
   // Initialize GSAP first
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
     console.error('GSAP or ScrollTrigger not loaded');
+    // Повторная попытка через 100мс
+    setTimeout(initAnimations, 100);
     return;
   }
   
@@ -20,16 +23,16 @@
   if (typeof Lenis !== 'undefined') {
     
     lenis = new Lenis({
-      duration: isMobile ? 1.0 : 1.4, // Быстрее на мобильных для более отзывчивого скролла
+      duration: isMobile ? 1.0 : 1.4, 
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
-      touchMultiplier: isMobile ? 1.2 : 1.5, // Меньше чувствительность на мобильных
+      touchMultiplier: isMobile ? 1.2 : 1.5, 
       infinite: false,
-      syncTouch: isMobile ? false : true, // Отключаем syncTouch на мобильных для более плавного скролла
-      syncTouchLerp: isMobile ? 0.25 : 0.075, // Более быстрое сглаживание на мобильных
+      syncTouch: isMobile ? false : true, 
+      syncTouchLerp: isMobile ? 0.25 : 0.075,
     });
     
     // CRITICAL: Sync Lenis with GSAP ScrollTrigger
@@ -49,6 +52,32 @@
       ScrollTrigger.config({ 
         autoRefreshEvents: "visibilitychange,DOMContentLoaded,load"
       });
+    }
+    
+    // Обновляем ScrollTrigger после полной загрузки страницы и изображений
+    window.addEventListener('load', function() {
+      ScrollTrigger.refresh();
+    });
+    
+    // Дополнительное обновление после загрузки всех изображений
+    const images = document.querySelectorAll('img');
+    let loadedImages = 0;
+    if (images.length > 0) {
+      images.forEach(img => {
+        if (img.complete) {
+          loadedImages++;
+        } else {
+          img.addEventListener('load', function() {
+            loadedImages++;
+            if (loadedImages === images.length) {
+              ScrollTrigger.refresh();
+            }
+          });
+        }
+      });
+      if (loadedImages === images.length) {
+        ScrollTrigger.refresh();
+      }
     }
     
     // Store globally
@@ -112,14 +141,14 @@
         gsap.to(h2, { 
           opacity: 1, y: 0, letterSpacing: '0em',
           duration: 0.9, ease: 'expo.out',
-          scrollTrigger: { trigger: header, start: 'top 95%', once: true }
+          scrollTrigger: { trigger: header, start: 'top 85%', once: true }
         });
       }
       if (p) {
         gsap.to(p, { 
           opacity: 1, y: 0,
           duration: 0.8, ease: 'expo.out', delay: 0.08,
-          scrollTrigger: { trigger: header, start: 'top 95%', once: true }
+          scrollTrigger: { trigger: header, start: 'top 85%', once: true }
         });
       }
     });
@@ -129,11 +158,21 @@
     const aboutContent = document.querySelector('.about-content');
     
     if (aboutPhoto) {
-      gsap.to(aboutPhoto.parentElement, { 
-        opacity: 1, y: 0,
-        duration: 0.9, ease: 'expo.out',
-        scrollTrigger: { trigger: '.about', start: 'top 95%', once: true }
+      // Анимируем сам photo-placeholder, а не его родителя
+      gsap.to(aboutPhoto, { 
+        opacity: 1, 
+        y: 0,
+        duration: 0.9, 
+        ease: 'expo.out',
+        scrollTrigger: { trigger: '.about', start: 'top 85%', once: true }
       });
+      
+      // Убеждаемся что изображение видно даже если анимация не сработала
+      const img = aboutPhoto.querySelector('img');
+      if (img) {
+        img.style.opacity = '1';
+        img.style.display = 'block';
+      }
     }
     
     if (aboutContent) {
@@ -141,7 +180,7 @@
       gsap.to(contentElements, { 
         opacity: 1, y: 0,
         duration: 0.8, ease: 'expo.out', stagger: 0.06,
-        scrollTrigger: { trigger: '.about', start: 'top 95%', once: true }
+        scrollTrigger: { trigger: '.about', start: 'top 85%', once: true }
       });
     }
 
@@ -150,7 +189,7 @@
       gsap.to(card, { 
         opacity: 1, y: 0,
         duration: 0.75, ease: 'expo.out', delay: i * 0.06,
-        scrollTrigger: { trigger: '.what-is .grid', start: 'top 95%', once: true }
+        scrollTrigger: { trigger: '.what-is .grid', start: 'top 85%', once: true }
       });
     });
 
@@ -159,7 +198,7 @@
       gsap.to(card, { 
         opacity: 1, y: 0,
         duration: 0.7, ease: 'expo.out', delay: i * 0.05,
-        scrollTrigger: { trigger: '.week-grid', start: 'top 95%', once: true }
+        scrollTrigger: { trigger: '.week-grid', start: 'top 85%', once: true }
       });
     });
 
@@ -168,7 +207,7 @@
       gsap.to(card, { 
         opacity: 1, y: 0,
         duration: 0.75, ease: 'expo.out', delay: i * 0.06,
-        scrollTrigger: { trigger: '.why-us .grid', start: 'top 95%', once: true }
+        scrollTrigger: { trigger: '.why-us .grid', start: 'top 85%', once: true }
       });
     });
 
@@ -178,7 +217,7 @@
       gsap.to(testimonial, { 
         opacity: 1, y: 0,
         duration: 0.9, ease: 'expo.out',
-        scrollTrigger: { trigger: testimonial, start: 'top 95%', once: true }
+        scrollTrigger: { trigger: testimonial, start: 'top 85%', once: true }
       });
     }
 
@@ -187,7 +226,7 @@
     if (steps.length) {
       ScrollTrigger.create({
         trigger: '.steps',
-        start: 'top 95%',
+        start: 'top 85%',
         once: true,
         onEnter: () => {
           steps.forEach((step, i) => {
@@ -209,7 +248,7 @@
                 });
               }
             });
-          });
+    });
         }
       });
     }
@@ -219,7 +258,7 @@
       gsap.to(card, { 
         opacity: 1, y: 0,
         duration: 0.75, ease: 'expo.out', delay: i * 0.08,
-        scrollTrigger: { trigger: '.pricing-grid', start: 'top 95%', once: true }
+        scrollTrigger: { trigger: '.pricing-grid', start: 'top 85%', once: true }
       });
     });
 
@@ -228,7 +267,7 @@
     if (faqItemsAnim.length) {
       ScrollTrigger.create({
         trigger: '.faq-list',
-        start: 'top 95%',
+        start: 'top 85%',
         once: true,
         onEnter: () => {
           gsap.to(faqItemsAnim, { 
@@ -252,7 +291,7 @@
         gsap.to(finalH2, { 
           opacity: 1, y: 0, letterSpacing: '0em',
           duration: 0.9, ease: 'expo.out',
-          scrollTrigger: { trigger: finalCta, start: 'top 95%', once: true }
+          scrollTrigger: { trigger: finalCta, start: 'top 85%', once: true }
         });
       }
       
@@ -261,62 +300,90 @@
         duration: 0.75, ease: 'expo.out', stagger: 0.08, delay: 0.1,
         scrollTrigger: { trigger: finalCta, start: 'top 95%', once: true }
       });
-    }
+      }
 
     // Background shapes parallax (отключаем на мобильных для плавности)
     if (!isMobile) {
-      gsap.utils.toArray('.shape').forEach((shape, i) => {
-        gsap.to(shape, {
-          y: (i + 1) * 100,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: 'body',
-            start: 'top top',
-            end: 'bottom bottom',
-            scrub: 2
-          }
-        });
+    gsap.utils.toArray('.shape').forEach((shape, i) => {
+      gsap.to(shape, {
+        y: (i + 1) * 100,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: 'body',
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 2
+        }
       });
+    });
 
       // Section parallax effects (selective - only on specific sections)
       gsap.utils.toArray('.about, .what-is, .why-us, .final-cta').forEach(section => {
-        const content = section.querySelector('.container');
-        if (content) {
-          gsap.fromTo(content,
+      const content = section.querySelector('.container');
+      if (content) {
+        gsap.fromTo(content,
             { y: 20 },
-            {
+          {
               y: -20,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: section,
-                start: 'top bottom',
-                end: 'bottom top',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: section,
+              start: 'top bottom',
+              end: 'bottom top',
                 scrub: 1.5
-              }
             }
-          );
+          }
+        );
+      }
+    });
+
+    // Photo placeholder parallax
+    const photoPlaceholder = document.querySelector('.photo-placeholder');
+    if (photoPlaceholder) {
+      gsap.to(photoPlaceholder, {
+        y: -40,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.about',
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.5
         }
       });
-
-      // Photo placeholder parallax
-      const photoPlaceholder = document.querySelector('.photo-placeholder');
-      if (photoPlaceholder) {
-        gsap.to(photoPlaceholder, {
-          y: -40,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '.about',
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1.5
-          }
-        });
-      }
+    }
     }
 
     // Cards parallax removed to prevent conflict with 3D hover tilt effect
 
   }
+  
+  // Принудительное обновление ScrollTrigger после инициализации всех анимаций
+  ScrollTrigger.refresh();
+  
+  // Дополнительное обновление после небольшой задержки (для корректного расчёта позиций)
+  setTimeout(function() {
+    ScrollTrigger.refresh();
+  }, 100);
+}
+
+// Запускаем инициализацию при загрузке DOM
+document.addEventListener('DOMContentLoaded', initAnimations);
+
+// Дополнительная инициализация при полной загрузке страницы (на случай если GSAP загрузился позже)
+window.addEventListener('load', function() {
+  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    ScrollTrigger.refresh();
+    // Если анимации ещё не инициализированы, инициализируем их
+    const sectionHeaders = document.querySelectorAll('.section-header h2');
+    if (sectionHeaders.length > 0 && window.getComputedStyle(sectionHeaders[0]).opacity === '0') {
+      initAnimations();
+        }
+  }
+});
+
+// Остальной код выполняется при загрузке DOM
+document.addEventListener('DOMContentLoaded', function() {
+  'use strict';
 
   /* ========== HEADER SCROLL EFFECT ========== */
   const header = document.querySelector('header');
@@ -365,10 +432,17 @@
 
   /* ========== SMOOTH SCROLL FOR ANCHOR LINKS ========== */
   document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    // Исключаем кнопки из модальных окон
+    if (anchor.closest('.invite-modal') || anchor.id === 'openInviteLink' || anchor.id === 'inviteLinkValue') {
+      return;
+    }
+    
     anchor.addEventListener('click', function(e) {
-      e.preventDefault();
       const targetId = this.getAttribute('href');
-      if (targetId === '#') return;
+      // Если href изменился на реальную ссылку - не блокируем
+      if (targetId === '#' || !targetId.startsWith('#')) return;
+      
+      e.preventDefault();
       
       const target = document.querySelector(targetId);
       
@@ -572,7 +646,7 @@
   
   function validateEmail(email) {
     if (!email || !email.trim()) {
-      return { valid: false, message: 'Email обязателен для получения чека об оплате' };
+      return { valid: false, message: 'Email обязателен для связи и уведомлений' };
     }
     
     const cleanEmail = email.trim();
@@ -702,6 +776,56 @@
     });
   }
 
+  // ========== МОДАЛЬНЫЕ ОКНА ПОДТВЕРЖДЕНИЯ ==========
+  const confirmUsernameModal = document.getElementById('confirmUsernameModal');
+  const confirmUsernameValue = document.getElementById('confirmUsernameValue');
+  const confirmUsernameBack = document.getElementById('confirmUsernameBack');
+  const confirmUsernameConfirm = document.getElementById('confirmUsernameConfirm');
+  
+  let pendingPaymentData = null;
+  
+  function showConfirmUsernameModal(username) {
+    if (confirmUsernameModal && confirmUsernameValue) {
+      confirmUsernameValue.textContent = '@' + username;
+      confirmUsernameModal.classList.add('active');
+      confirmUsernameModal.setAttribute('aria-hidden', 'false');
+    }
+  }
+  
+  function hideConfirmUsernameModal() {
+    if (confirmUsernameModal) {
+      confirmUsernameModal.classList.remove('active');
+      confirmUsernameModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+  
+  if (confirmUsernameBack) {
+    confirmUsernameBack.addEventListener('click', function() {
+      hideConfirmUsernameModal();
+      pendingPaymentData = null;
+    });
+  }
+  
+  if (confirmUsernameConfirm) {
+    confirmUsernameConfirm.addEventListener('click', function() {
+      hideConfirmUsernameModal();
+      if (pendingPaymentData) {
+        createPayment(pendingPaymentData);
+        pendingPaymentData = null;
+      }
+    });
+  }
+  
+  // Закрытие по клику вне модального окна
+  if (confirmUsernameModal) {
+    confirmUsernameModal.addEventListener('click', function(e) {
+      if (e.target === confirmUsernameModal) {
+        hideConfirmUsernameModal();
+        pendingPaymentData = null;
+      }
+    });
+  }
+
   if (payBtn) {
     payBtn.addEventListener('click', function() {
       const selectedTariff = document.querySelector('.tariff-option.active');
@@ -709,7 +833,7 @@
       const userEmail = document.getElementById('userEmail');
       
       if (!selectedTariff) {
-        alert('Пожалуйста, выберите тариф');
+        showNotification('Пожалуйста, выберите тариф', 'warning');
         return;
       }
       
@@ -732,71 +856,309 @@
       // Валидация чекбокса согласия
       const privacyAgreement = document.getElementById('privacyAgreement');
       if (!privacyAgreement || !privacyAgreement.checked) {
-        showFieldError('privacyAgreement', 'privacyAgreementError', 'Необходимо согласие с политикой конфиденциальности');
+        showFieldError('privacyAgreement', 'privacyAgreementError', 'Необходимо согласие с условиями');
         privacyAgreement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
       
       const tariffId = selectedTariff.getAttribute('data-tariff');
+      // ВНИМАНИЕ: Для тестирования цена на 1 месяц временно изменена на 1₽
+      // После успешного теста вернуть на 1500₽
       const tariffPrices = {
-        '1': 990,
-        '3': 2490,
-        '12': 8990
+        '1': 1500, // ТЕСТ: было 1500
+        '3': 4500,
+        '12': 12500
       };
       
-      // Отправляем данные на сервер для создания платежа
-      createPayment({
+      // Сохраняем данные и показываем модальное окно подтверждения
+      pendingPaymentData = {
         tariff: tariffId,
         username: usernameValidation.value,
         email: emailValidation.value,
         amount: tariffPrices[tariffId]
-      });
+      };
+      
+      showConfirmUsernameModal(usernameValidation.value);
     });
   }
   
+  // Функция показа уведомлений (простых)
+  function showNotification(message, type = 'info') {
+    // Создаём временное уведомление
+    const notification = document.createElement('div');
+    notification.className = 'notification notification-' + type;
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: ${type === 'warning' ? '#ffc107' : type === 'error' ? '#f44336' : 'var(--accent)'};
+      color: ${type === 'warning' ? '#000' : '#fff'};
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      z-index: 100000;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      animation: slideDown 0.3s ease;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideUp 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+  
   // Функция создания платежа
+  // Редирект на кастомную страницу оплаты
   async function createPayment(data) {
     try {
       payBtn.disabled = true;
-      payBtn.textContent = 'Создание платежа...';
+      payBtn.textContent = 'Переход к оплате...';
       
-      // ВАЖНО: Замените на URL вашего backend API
-      // Пример: 'https://your-site.com/api/create-payment'
-      const response = await fetch('https://your-site.com/api/create-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
+      // Закрываем модальное окно и переходим на страницу оплаты
+      closeModal();
+      
+      // Формируем URL с параметрами
+      const params = new URLSearchParams({
+        tariff: data.tariff,
+        username: data.username.replace('@', ''),
+        email: data.email
       });
       
-      const result = await response.json();
+      window.location.href = '/payment?' + params.toString();
       
-      if (result.success && result.paymentUrl) {
-        // Редирект на страницу оплаты
-        window.location.href = result.paymentUrl;
-      } else {
-        throw new Error(result.error || 'Ошибка создания платежа');
-      }
     } catch (error) {
-      console.error('Payment error:', error);
-      alert('Произошла ошибка. Пожалуйста, попробуйте позже.');
+      // Используем улучшенную обработку ошибок
+      if (typeof showErrorNotification === 'function') {
+        showErrorNotification(error);
+      } else {
+        const errorMsg = typeof getUserFriendlyError === 'function' 
+          ? getUserFriendlyError(error)
+          : (error.message || 'Произошла ошибка. Пожалуйста, попробуйте позже.');
+        showNotification(errorMsg, 'error');
+      }
       payBtn.disabled = false;
       payBtn.textContent = 'Оплатить и получить доступ';
     }
   }
   
-  // Обработка возврата после оплаты (если есть параметр success в URL)
+  // ========== INVITE LINK MODAL ==========
+  const inviteLinkModal = document.getElementById('inviteLinkModal');
+  const inviteLinkValue = document.getElementById('inviteLinkValue');
+  const copyInviteLink = document.getElementById('copyInviteLink');
+  const openInviteLink = document.getElementById('openInviteLink');
+  const closeConfirmModal = document.getElementById('closeConfirmModal');
+  const closeConfirmCancel = document.getElementById('closeConfirmCancel');
+  const closeConfirmYes = document.getElementById('closeConfirmYes');
+  
+  let currentInviteLink = null;
+  let inviteLinkCopied = false;
+  let inviteLinkOpened = false;
+  
+  function showInviteLinkModal(inviteLink) {
+    currentInviteLink = inviteLink;
+    inviteLinkCopied = false;
+    inviteLinkOpened = false;
+    
+    // Получаем элементы каждый раз заново
+    const modalEl = document.getElementById('inviteLinkModal');
+    const linkValueEl = document.getElementById('inviteLinkValue');
+    const openLinkEl = document.getElementById('openInviteLink');
+    
+    if (modalEl && linkValueEl) {
+      linkValueEl.href = inviteLink;
+      linkValueEl.textContent = inviteLink;
+      
+      if (openLinkEl) {
+        openLinkEl.href = inviteLink;
+        openLinkEl.setAttribute('href', inviteLink);
+      }
+      
+      modalEl.classList.add('active');
+      modalEl.setAttribute('aria-hidden', 'false');
+      
+      // Блокируем закрытие страницы
+      window.addEventListener('beforeunload', preventClose);
+      
+      console.log('Invite link modal shown with link:', inviteLink);
+    }
+  }
+  
+  function hideInviteLinkModal(force = false) {
+    if (!force && !inviteLinkCopied && !inviteLinkOpened) {
+      // Показываем предупреждение
+      showCloseConfirmModal();
+      return;
+    }
+    
+    if (inviteLinkModal) {
+      inviteLinkModal.classList.remove('active');
+      inviteLinkModal.setAttribute('aria-hidden', 'true');
+      window.removeEventListener('beforeunload', preventClose);
+      
+      // Очищаем URL от параметров
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }
+  
+  function showCloseConfirmModal() {
+    if (closeConfirmModal) {
+      closeConfirmModal.classList.add('active');
+      closeConfirmModal.setAttribute('aria-hidden', 'false');
+    }
+  }
+  
+  function hideCloseConfirmModal() {
+    if (closeConfirmModal) {
+      closeConfirmModal.classList.remove('active');
+      closeConfirmModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+  
+  function preventClose(e) {
+    if (!inviteLinkCopied && !inviteLinkOpened) {
+      e.preventDefault();
+      e.returnValue = 'Вы не скопировали ссылку-приглашение! Она будет потеряна.';
+      return e.returnValue;
+    }
+  }
+  
+  // Копирование ссылки
+  if (copyInviteLink) {
+    copyInviteLink.addEventListener('click', function() {
+      if (currentInviteLink) {
+        navigator.clipboard.writeText(currentInviteLink).then(function() {
+          inviteLinkCopied = true;
+          copyInviteLink.classList.add('copied');
+          showNotification('Ссылка скопирована!', 'info');
+          
+          setTimeout(() => {
+            copyInviteLink.classList.remove('copied');
+          }, 2000);
+        }).catch(function() {
+          // Fallback для старых браузеров
+          const textArea = document.createElement('textarea');
+          textArea.value = currentInviteLink;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          
+          inviteLinkCopied = true;
+          showNotification('Ссылка скопирована!', 'info');
+        });
+      }
+    });
+  }
+  
+  // Открытие ссылки
+  if (openInviteLink) {
+    openInviteLink.addEventListener('click', function() {
+      inviteLinkOpened = true;
+    });
+  }
+  
+  if (inviteLinkValue) {
+    inviteLinkValue.addEventListener('click', function() {
+      inviteLinkOpened = true;
+    });
+  }
+  
+  // Защита от закрытия модального окна
+  if (inviteLinkModal) {
+    inviteLinkModal.addEventListener('click', function(e) {
+      if (e.target === inviteLinkModal) {
+        hideInviteLinkModal();
+      }
+    });
+  }
+  
+  // Подтверждение закрытия
+  if (closeConfirmCancel) {
+    closeConfirmCancel.addEventListener('click', hideCloseConfirmModal);
+  }
+  
+  if (closeConfirmYes) {
+    closeConfirmYes.addEventListener('click', function() {
+      hideCloseConfirmModal();
+      hideInviteLinkModal(true);
+    });
+  }
+  
+  // Обработка возврата после оплаты
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('payment') === 'success') {
-    // Показываем сообщение об успехе
-    setTimeout(() => {
-      alert('Оплата успешна! Проверьте Telegram - вы получите приглашение в канал.');
-    }, 500);
+    const paymentId = urlParams.get('payment_id');
+    const username = urlParams.get('username');
+    
+    if (paymentId || username) {
+      checkPaymentStatus(paymentId, username);
+    } else {
+      showNotification('Оплата успешна! Ожидайте приглашение в канал.', 'info');
+    }
   } else if (urlParams.get('payment') === 'failed') {
     setTimeout(() => {
-      alert('Оплата не была завершена. Попробуйте еще раз.');
+      showNotification('Оплата не была завершена. Попробуйте еще раз.', 'error');
     }, 500);
+  }
+  
+  // Функция проверки статуса платежа
+  let checkStatusAttempts = 0;
+  const maxCheckAttempts = 20; // Максимум 60 секунд (20 * 3 сек)
+  
+  async function checkPaymentStatus(paymentId, username) {
+    try {
+      let url = 'https://c24u.ru/api/index.php?action=payment-status&';
+      if (paymentId) {
+        url += `payment_id=${encodeURIComponent(paymentId)}`;
+      } else if (username) {
+        url += `username=${encodeURIComponent(username)}`;
+      }
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.status === 'succeeded') {
+        if (result.invite_link) {
+          // Показываем модальное окно с invite link
+          showInviteLinkModal(result.invite_link);
+        } else {
+          // Invite link еще не создан, повторяем проверку
+          checkStatusAttempts++;
+          if (checkStatusAttempts < maxCheckAttempts) {
+            setTimeout(() => {
+              checkPaymentStatus(paymentId, username);
+            }, 3000);
+          } else {
+            showNotification('Оплата успешна! Ссылка будет отправлена в течение нескольких минут.', 'info');
+          }
+        }
+      } else if (result.success && (result.status === 'pending' || result.status === 'waiting_for_capture')) {
+        // Платеж обрабатывается
+        checkStatusAttempts++;
+        if (checkStatusAttempts < maxCheckAttempts) {
+          setTimeout(() => {
+            checkPaymentStatus(paymentId, username);
+          }, 3000);
+        } else {
+          showNotification('Оплата обрабатывается. Приглашение придёт после подтверждения.', 'info');
+        }
+      } else {
+        showNotification('Оплата обрабатывается. Ожидайте приглашение.', 'info');
+      }
+    } catch (error) {
+      console.error('Payment status check error:', error);
+      showNotification('Оплата успешна! Приглашение придёт в течение нескольких минут.', 'info');
+    }
   }
 
   /* ========== FAQ ACCORDION ========== */
@@ -1256,7 +1618,7 @@
       }
       
       animateNetwork();
-    }
+  }
   }
 
   /* ========== EXIT INTENT POPUP ========== */
